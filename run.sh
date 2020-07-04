@@ -2277,13 +2277,13 @@ publish() {
 
     V="$2"
     
-    : ${MAIN_TAG="someguy123/steem:$V"}
+    : ${MAIN_TAG="$DK_TAG_BASE:$V"}
     [[ "$MKMIRA" == "mira" ]] && SECTAG="latest-mira" || SECTAG="latest"
     (( $# > 2 )) && SECTAG="$3"
     if [[ "$SECTAG" == "n/a" ]]; then
         msg bold yellow  " >> Will build tag $V as tags $MAIN_TAG (no second tag)"
     else
-        SECOND_TAG="someguy123/steem:$SECTAG"
+        SECOND_TAG="$DK_TAG_BASE:$SECTAG"
         msg bold yellow " >> Will build tag $V as tags $MAIN_TAG and $SECOND_TAG"
     fi
     sleep 5
