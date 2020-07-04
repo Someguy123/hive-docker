@@ -199,6 +199,31 @@ if [[ "$NETWORK" == "hive" ]]; then
     : ${DKR_DATA_MOUNT="/steem"}    # Mount $DATADIR onto this folder within the container
     : ${DKR_SHM_MOUNT="/shm"}       # Mount $SHM_DIR onto this folder within the container
     : ${DKR_RUN_BIN="steemd"}       # Run this executable within the container
+elif [[ "$NETWORK" == "blurt" ]]; then
+    : ${DOCKER_IMAGE="blurt"}
+    : ${STEEM_SOURCE="https://gitlab.com/blurt/blurt.git"}
+
+    : ${NETWORK_NAME="blurt"}
+    : ${SELF_NAME="Blurt-in-a-box"}
+    
+    : ${BC_HTTP="http://files.privex.io/blurt/block_log.lz4"}        # HTTP or HTTPS url to grab the blockchain from. Set compression in BC_HTTP_CMP
+    : ${BC_HTTP_RAW="http://files.privex.io/blurt/block_log"}        # Uncompressed block_log over HTTP
+    : ${BC_HTTP_CMP="lz4"}                                           # Compression type, can be "xz", "lz4", or "no" (for no compression)
+    : ${BC_RSYNC="rsync://files.privex.io/blurt/block_log"}          # Anonymous rsync daemon URL to the raw block_log
+    
+    : ${ROCKSDB_RSYNC="rsync://files.privex.io/blurt/rocksdb/"}      # Rsync URL for MIRA RocksDB files
+
+    : ${DK_TAG_BASE="someguy123/blurt"}
+
+    : ${REMOTE_WS="wss://blurtd.privex.io"}
+    : ${REMOTE_RPC="https://blurtd.privex.io"}
+
+    : ${STOP_TIME=600}          # Amount of time in seconds to allow the docker container to stop before killing it.
+    : ${STEEM_RPC_PORT="8091"}  # Local steemd RPC port, used by commands such as 'monitor' which need to query your steemd's HTTP RPC
+
+    : ${DKR_DATA_MOUNT="/steem"}    # Mount $DATADIR onto this folder within the container
+    : ${DKR_SHM_MOUNT="/shm"}       # Mount $SHM_DIR onto this folder within the container
+    : ${DKR_RUN_BIN="blurtd"}       # Run this executable within the container
 fi
 
 
