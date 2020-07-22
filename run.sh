@@ -176,7 +176,7 @@ fi
 
 if [[ "$NETWORK" == "hive" ]]; then
     : ${DOCKER_IMAGE="hive"}
-    : ${STEEM_SOURCE="https://github.com/openhive-network/hive.git"}
+    : ${STEEM_SOURCE="https://gitlab.syncad.com/hive/hive.git"}
 
     : ${NETWORK_NAME="Hive"}
     : ${SELF_NAME="Hive-in-a-box"}
@@ -1428,7 +1428,7 @@ install() {
         if grep -qv ':' <<< "$1"; then
             if grep -qv '/' <<< "$1"; then
                 msg bold red "WARNING: Neither / nor : were present in your tag '$1'"
-                DK_TAG="someguy123/steem:$1"
+                DK_TAG="${DK_TAG_BASE}:$1"
                 msg red "We're assuming you've entered a version, and will try to install @someguy123's image: '${DK_TAG}'"
                 msg yellow "If you *really* specifically want '$1' from Docker hub, set DK_TAG='$1' inside of .env and run './run.sh install'"
             fi
