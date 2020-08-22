@@ -24,11 +24,11 @@ RUN pip3 install jinja2
 ARG steemd_version=stable
 ENV steemd_version ${steemd_version}
 
-ARG STEEM_SOURCE="https://github.com/steemit/steem.git"
+ARG STEEM_SOURCE="https://gitlab.syncad.com/hive/hive.git"
 ENV STEEM_SOURCE ${STEEM_SOURCE}
 
-ARG STEEM_STATIC_BUILD=ON
-ENV STEEM_STATIC_BUILD ${STEEM_STATIC_BUILD}
+ARG HIVE_STATIC_BUILD=ON
+ENV HIVE_STATIC_BUILD ${HIVE_STATIC_BUILD}
 
 ARG ENABLE_MIRA=ON
 ENV ENABLE_MIRA ${ENABLE_MIRA}
@@ -39,8 +39,18 @@ ENV LOW_MEMORY_MODE ${LOW_MEMORY_MODE}
 ARG CLEAR_VOTES=ON
 ENV CLEAR_VOTES ${CLEAR_VOTES}
 
+ARG BUILD_HIVE_TESTNET=OFF
+ENV BUILD_HIVE_TESTNET ${BUILD_HIVE_TESTNET}
+
+ARG ENABLE_STD_ALLOCATOR_SUPPORT=ON
+ENV ENABLE_STD_ALLOCATOR_SUPPORT ${ENABLE_STD_ALLOCATOR_SUPPORT}
+
 ARG SKIP_BY_TX_ID=ON
 ENV SKIP_BY_TX_ID ${SKIP_BY_TX_ID}
+
+ARG CMAKE_BUILD_TYPE=Release
+ENV CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
+
 
 RUN cd ~ && \
     echo " >>> Cloning tag/branch ${steemd_version} from repo: ${STEEM_SOURCE}" && \
@@ -48,13 +58,16 @@ RUN cd ~ && \
 	cd steem && \
 	git submodule update --init --recursive && \
         cd ~/steem && \
-	cmake -DCMAKE_BUILD_TYPE=Release . \
+	cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} . \
             -DLOW_MEMORY_NODE=${LOW_MEMORY_MODE} \
             -DCLEAR_VOTES=${CLEAR_VOTES} \
-            -DSTEEM_STATIC_BUILD=${STEEM_STATIC_BUILD} \
+            -DHIVE_STATIC_BUILD=${HIVE_STATIC_BUILD} \
             -DSKIP_BY_TX_ID=${SKIP_BY_TX_ID} \
+            -DBUILD_HIVE_TESTNET=${BUILD_HIVE_TESTNET} \
+            -DENABLE_STD_ALLOCATOR_SUPPORT=${ENABLE_STD_ALLOCATOR_SUPPORT} \
             -DENABLE_MIRA=${ENABLE_MIRA} && \
 	make -j$(nproc) && make install && rm -rf ~/steem
+
 VOLUME /steem
 WORKDIR /steem
 
@@ -74,8 +87,9 @@ RUN echo "This container has been built with the following options:" >> /steem_b
     echo "Git version/commit:          ${steemd_version}\n----" >> /steem_build.txt && \
     echo "Default steemd executable:   ${STEEMD_BIN}\n---" >> /steem_build.txt && \
     echo "--- CMake Config Options ---" >> /steem_build.txt && \
-    echo "LOW_MEMORY_MODE=${LOW_MEMORY_MODE}\nSTEEM_STATIC_BUILD=${STEEM_STATIC_BUILD}" >> /steem_build.txt && \
+    echo "LOW_MEMORY_MODE=${LOW_MEMORY_MODE}\nHIVE_STATIC_BUILD=${HIVE_STATIC_BUILD}" >> /steem_build.txt && \
     echo "SKIP_BY_TX_ID=${SKIP_BY_TX_ID}\nENABLE_MIRA=${ENABLE_MIRA}\nCLEAR_VOTES=${CLEAR_VOTES}" >> /steem_build.txt && \
+    echo "BUILD_HIVE_TESTNET=${BUILD_HIVE_TESTNET}\nENABLE_STD_ALLOCATOR_SUPPORT=${ENABLE_STD_ALLOCATOR_SUPPORT}" && \
     echo "----\nBuilt at: $(date)\n----" >> /steem_build.txt
 
 RUN echo "Please configure me! You need to mount a data directory onto /steem of this container to it to function correctly. (if you're using Steem-in-a-box most of this is handled automatically)"

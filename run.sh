@@ -507,7 +507,7 @@ optimize() {
 
 parse_build_args() {
     BUILD_VER=$1
-    CUST_TAG="steem:$BUILD_VER"
+    CUST_TAG="$DOCKER_IMAGE:$BUILD_VER"
     if (( $BUILD_FULL == 1 )); then
         CUST_TAG+="-full"
     fi
@@ -520,7 +520,8 @@ parse_build_args() {
             shift; shift;    # Get rid of the two tag arguments. Everything after is now build args
         fi
     fi
-    local has_steem_src='n'
+    local has_steem_src='n' has_clear_votes=0 has_skip_txid=0 has_lowmem_node=0 has_enable_mira=0
+
     if (( $# >= 1 )); then
         msg yellow " >> Additional build arguments specified."
         for a in "$@"; do
@@ -529,9 +530,31 @@ parse_build_args() {
             if grep -q 'STEEM_SOURCE' <<< "$a"; then
                 has_steem_src='y'
             fi
+            grep -q 'CLEAR_VOTES' <<< "$a" && has_clear_votes=1 || has_clear_votes=0
+            grep -q 'SKIP_BY_TX_ID' <<< "$a" && has_skip_txid=1 || has_skip_txid=0
+            grep -q 'LOW_MEMORY_NODE' <<< "$a" && has_lowmem_node=1 || has_lowmem_node=0
+            grep -q 'ENABLE_MIRA' <<< "$a" && has_enable_mira=1 || has_enable_mira=0
         done
     fi
-
+    
+    if (( BUILD_FULL )); then
+        if ! (( has_clear_votes )); then
+            msg bold yellow " [!!] CLEAR_VOTES wasn't specified but BUILD_FULL=1 - defaulting CLEAR_VOTES=OFF"
+            BUILD_ARGS+=('--build-arg' 'CLEAR_VOTES=OFF')
+        fi
+        if ! (( has_skip_txid )); then
+            msg bold yellow " [!!] SKIP_BY_TX_ID wasn't specified but BUILD_FULL=1 - defaulting SKIP_BY_TX_ID=OFF"
+            BUILD_ARGS+=('--build-arg' 'SKIP_BY_TX_ID=OFF')
+        fi
+        if ! (( has_lowmem_node )); then
+            msg bold yellow " [!!] LOW_MEMORY_NODE wasn't specified but BUILD_FULL=1 - defaulting LOW_MEMORY_NODE=OFF"
+            BUILD_ARGS+=('--build-arg' 'LOW_MEMORY_NODE=OFF')
+        fi
+        if ! (( has_enable_mira )); then
+            msg bold yellow " [!!] ENABLE_MIRA wasn't specified but BUILD_FULL=1 - defaulting ENABLE_MIRA=OFF"
+            BUILD_ARGS+=('--build-arg' 'ENABLE_MIRA=OFF')
+        fi
+    fi
     if [[ "$has_steem_src" == "y" ]]; then
         msg bold yellow " [!!] STEEM_SOURCE has been specified in the build arguments. Using source from build args instead of global"
     else
@@ -575,7 +598,7 @@ build_local() {
 #
 build() {
     fmm="Low Memory Mode (For Seed / Witness nodes)"
-    (( $BUILD_FULL == 1 )) && fmm="Full Memory Mode (For RPC nodes)" && DOCKER_DIR="$FULL_DOCKER_DIR"
+    (( $BUILD_FULL == 1 )) && fmm="Full Memory Mode (For RPC nodes)"
     BUILD_MSG=" >> Building docker container [[ ${fmm} ]]"
     if (( $# >= 1 )); then
         parse_build_args "$@"
@@ -597,8 +620,8 @@ build() {
     !!! !!! !!! !!! !!! !!! READ THIS !!! !!! !!! !!! !!! !!!
         ${RESET}
             "
-            msg bold green " +++ Successfully built steemd"
-            msg green " +++ Steem node type: ${BOLD}${fmm}"
+            msg bold green " +++ Successfully built ${NETWORK_NAME}"
+            msg green " +++ ${NETWORK_NAME} node type: ${BOLD}${fmm}"
             msg green " +++ Version/Branch: ${BOLD}${BUILD_VER}"
             msg green " +++ Build args: ${BOLD}${BUILD_ARGS[@]}"
             msg green " +++ Docker tag: ${CUST_TAG}"
@@ -613,8 +636,8 @@ build() {
     docker build -t "$DOCKER_IMAGE" .
     ret=$?
     if (( $ret == 0 )); then
-        msg bold green " +++ Successfully built current stable steemd"
-        msg green " +++ Steem node type: ${BOLD}${fmm}"
+        msg bold green " +++ Successfully built current stable ${NETWORK_NAME}"
+        msg green " +++ ${NETWORK_NAME} node type: ${BOLD}${fmm}"
         msg green " +++ Docker tag: ${DOCKER_IMAGE}"
     else
         msg bold red " !!! ERROR: Something went wrong during the build process."
