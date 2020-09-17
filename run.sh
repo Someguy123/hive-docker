@@ -451,6 +451,12 @@ help() {
     fix-blocks      - downloads / repairs your blockchain, block index, and/or rocksdb. 
                       check '$0 fix-blocks help' for more info
 
+    load_snap|loadsnap|load_snapshot|loadsnapshot|import_snap [snapshot_name]
+                    - Loads the snapshot 'snapshot_name' into your chain state (new feature as of Hive 1.24.0)
+    
+    dump_snap|dumpsnap|dump_snapshot|dumpsnapshot|export_snap [snapshot_name]
+                    - Exports chain state to the snapshot 'snapshot_name' (new feature as of Hive 1.24.0)
+
     clean           - Remove blockchain, p2p, and/or shared mem folder contents (warns beforehand)
     dlblocks        - download and decompress the blockchain and block_log.index to speed up your first start
     dlblockindex    - download/repair just the block index (block_log.index)
@@ -1662,6 +1668,49 @@ start() {
     docker_run_node "$@"
 }
 
+load_snap() {
+    if (( $# < 1 )); then
+        msg nots cyan "Usage: $0 load_snap [snapshot_name]\n"
+        msg nots yellow "Starts $DKR_RUN_BIN with --load-snapshot [snapshot_name] to load a snapshot dump (snapshots were added in Hive v1.24.0)\n"
+
+        msg nots yellow "To create a snapshot, use: ${CYAN}$0 dump_snap [snapshot_name]\n"
+        msg nots yellow "By default, snapshots will be stored in the folder: ${DATADIR}/witness_node_data_dir/snapshot/\n"
+        return
+    fi
+
+    if ! grep -q "state_snapshot" "${CONFIG_FILE}"; then
+        msg nots red "ERROR: Your config file doesn't appear to contain the plugin 'state_snapshot'"
+        msg nots red "You can't load or dump snapshots without the plugin state_snapshot"
+        msg nots red "Please make sure 'plugin = state_snapshot' is present in your config: ${CONFIG_FILE}"
+        return 1
+    fi
+    
+    remove_seed_exists 1
+    msg green " >>> Starting ${DKR_RUN_BIN} - loading snapshot: $1\n"
+    start --load-snapshot "$1" "${@:2}"
+}
+
+dump_snap() {
+    if (( $# < 1 )); then
+        msg nots cyan "Usage: $0 dump_snap [snapshot_name]\n"
+        msg nots yellow "Starts $DKR_RUN_BIN with --dump-snapshot [snapshot_name] to create a snapshot dump (snapshots were added in Hive v1.24.0)\n"
+
+        msg nots yellow "To load a snapshot, use: ${CYAN}$0 load_snap [snapshot_name]\n"
+        msg nots yellow "By default, snapshots will be stored in the folder: ${DATADIR}/witness_node_data_dir/snapshot/\n"
+        return
+    fi
+    if ! grep -q "state_snapshot" "${CONFIG_FILE}"; then
+        msg nots red "ERROR: Your config file doesn't appear to contain the plugin 'state_snapshot'"
+        msg nots red "You can't load or dump snapshots without the plugin state_snapshot"
+        msg nots red "Please make sure 'plugin = state_snapshot' is present in your config: ${CONFIG_FILE}"
+        return 1
+    fi
+    
+    remove_seed_exists 1
+    msg green " >>> Starting ${DKR_RUN_BIN} - dumping snapshot: $1\n"
+    start --dump-snapshot "$1" "${@:2}"
+}
+
 # Usage: ./run.sh replay
 # Replays the blockchain for the Steem docker container
 # If steem is already running, it will ask you if you still want to replay
@@ -2355,6 +2404,12 @@ case $1 in
         ;;
     memory_replay)
         memory_replay "${@:2}"
+        ;;
+    load_snap|loadsnap|load_snapshot|loadsnapshot|import_snap|import_snapshot|importsnap|importsnapshot)
+        load_snap "${@:2}"
+        ;;
+    dump_snap|dumpsnap|dump_snapshot|dumpsnapshot|export_snap|export_snapshot|exportsnap|exportsnapshot|create_snap|createsnap|create_snapshot|createsnapshot)
+        dump_snap "${@:2}"
         ;;
     shm_size)
         shm_size $2
