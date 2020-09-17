@@ -14,6 +14,7 @@ data/advanced_benchmark.json
 data/r_advanced_benchmark.json
 rocksdb*
 *shared_memory*
+*state_snapshot*
 
 dkr_local/src/
 .rsync-partial/
