@@ -21,7 +21,7 @@ RUN pip3 install jinja2
 #
 ###
 
-ARG steemd_version=stable
+ARG steemd_version=master
 ENV steemd_version ${steemd_version}
 
 ARG STEEM_SOURCE="https://gitlab.syncad.com/hive/hive.git"
@@ -78,7 +78,7 @@ EXPOSE 5000
 EXPOSE 8090
 EXPOSE 8091
 
-ARG STEEMD_BIN="/usr/local/bin/steemd"
+ARG STEEMD_BIN="hived"
 ENV STEEMD_BIN ${STEEMD_BIN}
 
 RUN echo "This container has been built with the following options:" >> /steem_build.txt && \

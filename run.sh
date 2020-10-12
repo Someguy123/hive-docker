@@ -201,7 +201,7 @@ if [[ "$NETWORK" == "hive" ]]; then
 
     : ${DKR_DATA_MOUNT="/steem"}    # Mount $DATADIR onto this folder within the container
     : ${DKR_SHM_MOUNT="/shm"}       # Mount $SHM_DIR onto this folder within the container
-    : ${DKR_RUN_BIN="steemd"}       # Run this executable within the container
+    : ${DKR_RUN_BIN="hived"}        # Run this executable within the container
 elif [[ "$NETWORK" == "blurt" ]]; then
     : ${DOCKER_IMAGE="blurt"}
     : ${STEEM_SOURCE="https://gitlab.com/blurt/blurt.git"}
