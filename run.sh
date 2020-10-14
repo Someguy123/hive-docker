@@ -188,8 +188,8 @@ if [[ "$NETWORK" == "hive" ]]; then
     : ${RSYNC_BASE="rsync://files.privex.io/hive"}
     : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
     
-    : ${ROCKSDB_RSYNC="${RSYNC_BASE}/rocksdb/"}                     # Rsync URL for MIRA RocksDB files
-    : ${SNAPSHOT_RSYNC="${RSYNC_BASE}/privexsnap/"}                 # Rsync URL for Eclipse Snapshot
+    #: ${ROCKSDB_RSYNC="${RSYNC_BASE}/rocksdb/"}                     # Rsync URL for MIRA RocksDB files
+    #: ${SNAPSHOT_RSYNC="${RSYNC_BASE}/privexsnap/"}                 # Rsync URL for Eclipse Snapshot
 
     : ${DK_TAG_BASE="someguy123/hive"}
 
@@ -215,8 +215,8 @@ elif [[ "$NETWORK" == "blurt" ]]; then
     : ${RSYNC_BASE="rsync://files.privex.io/blurt"}
     : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
     
-    : ${ROCKSDB_RSYNC="${RSYNC_BASE}/rocksdb/"}                     # Rsync URL for MIRA RocksDB files
-    : ${SNAPSHOT_RSYNC="${RSYNC_BASE}/privexsnap/"}                 # Rsync URL for Eclipse Snapshot
+    #: ${ROCKSDB_RSYNC="${RSYNC_BASE}/rocksdb/"}                     # Rsync URL for MIRA RocksDB files
+    #: ${SNAPSHOT_RSYNC="${RSYNC_BASE}/privexsnap/"}                 # Rsync URL for Eclipse Snapshot
 
     : ${DK_TAG_BASE="someguy123/blurt"}
 
@@ -266,7 +266,10 @@ fi
 : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
 
 : ${ROCKSDB_RSYNC="${RSYNC_BASE}/rocksdb/"}                     # Rsync URL for MIRA RocksDB files
-: ${SNAPSHOT_RSYNC="${RSYNC_BASE}/privexsnap/"}                 # Rsync URL for Eclipse Snapshot
+
+: ${SNAPSHOT_NAME="privexsnap"}
+: ${SNAPSHOT_RSYNC="${RSYNC_BASE}/${SNAPSHOT_NAME}/"}           # Rsync URL for Eclipse Snapshot
+: ${SNAPSHOT_OUTDIR="${DATADIR}/witness_node_data_dir/snapshot/${SNAPSHOT_NAME}/"}
 
 : ${DK_TAG_BASE="someguy123/steem"}
 : ${DK_TAG="${DK_TAG_BASE}:latest"}
@@ -925,16 +928,40 @@ fix-blocks-snapshot() {
     msg nots yellow " >> For Hive 1.24.0 and newer, a special snapshot format is now available, and snapshots are published" 
     msg nots yellow " >> by Privex regularly. These snapshots work with non-MIRA, and possibly MIRA installations too."
     msg
-    msg nots cyan   "    Local Snapshot folder:           ${BOLD}${DATADIR}/witness_node_data_dir/snapshot/privexsnap/"
+    msg nots cyan   "    Local Snapshot folder:           ${BOLD}$SNAPSHOT_OUTDIR"
     msg nots cyan   "    Remote Snapshot source:          ${BOLD}$SNAPSHOT_RSYNC"
     msg
-    msg
-    if _fixbl_prompt "$AUTO_FIX_SNAPSHOT" " ${MAGENTA}Do you want to synchronise your snapshot files with the server?${RESET} (y/N) > " defno; then
+
+    local snap_exists=0 snap_filecount=0 snap_filelist
+    local snap_prompt=" ${MAGENTA}Do you want to synchronise your snapshot files with the server?${RESET}" 
+    snap_filelist=()
+    if [[ -d "$SNAPSHOT_OUTDIR" ]]; then
+        snap_exists=1 
+        #snap_filecount=${#snap_filelist[@]}
+        snap_filecount=$(ls "$SNAPSHOT_OUTDIR" | wc -l)
+        snap_filecount=$(( snap_filecount - 1 ))
+    fi
+
+    _fb_snap_inner() {
         msg
         msg nots green "\n [...] Updating Snapshot files to match the remote server's copy ..."
         _SILENCE_RDB_INTRO=1 _dlsnapshot
         msg
         msg green " [+++] Finished downloading/validating Snapshot files into ${DATADIR}/witness_node_data_dir/snapshot/privexsnap/ \n"
+    }
+ 
+    if (( snap_exists )); then
+        msg nots cyan   "    Local snapshot folder exists:    ${BOLD}${GREEN}YES"
+        msg nots cyan   "    Local snapshot subfolder count:  ${BOLD}${snap_filecount}${RESET} (state snapshots normally contain 20+ sub-folders)"
+    else
+        msg nots cyan   "    Local snapshot folder exists:    ${BOLD}${RED}NO"
+    fi
+    msg
+    
+    if (( snap_filecount <= 2 )) && _fixbl_prompt "$AUTO_FIX_SNAPSHOT" "$snap_prompt (Y/n) > " defyes; then
+        _fb_snap_inner
+    elif (( snap_filecount > 2 )) && _fixbl_prompt "$AUTO_FIX_SNAPSHOT" "$snap_prompt (y/N) > " defno; then
+        _fb_snap_inner
     else
         msg nots red "\n [!!!] Not synchronising snapshot files with remote server \n"
     fi
@@ -1052,8 +1079,8 @@ fix-blocks() {
     msg "\n"
     fix-blocks-snapshot
     msg "\n"
-    fix-blocks-rocksdb
-    msg "\n"
+    #fix-blocks-rocksdb
+    #msg "\n"
     return 0
 }
 

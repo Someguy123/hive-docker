@@ -1,11 +1,12 @@
-# Endpoint for P2P node to listen on
-p2p-endpoint = 0.0.0.0:2001
 
-# Maxmimum number of incoming connections on P2P endpoint
-p2p-max-connections = 200
+#################################################################################
+#                                                                               #
+#                 CHAIN STATE CONFIGURATION (SHARED MEM ETC.)                   #
+#                                                                               #
+#################################################################################
 
 # Shared file size
-shared-file-size = 64G
+shared-file-size = 25G
 shared-file-dir = /shm/
 
 # A 2-precision percentage (0-10000) that defines the threshold for when to 
@@ -20,6 +21,37 @@ shared-file-scale-rate = 1000
 
 # Target blocks to flush
 flush = 1000
+
+#################################################################################
+#                                                                               #
+#                     NETWORK CONFIGURATION (SEEDS/PORTS)                       #
+#                                                                               #
+#################################################################################
+
+# Endpoint for P2P node to listen on
+p2p-endpoint = 0.0.0.0:2001
+
+# Maxmimum number of incoming connections on P2P endpoint
+p2p-max-connections = 200
+
+# Endpoint for websocket RPC to listen on
+webserver-http-endpoint = 0.0.0.0:8091
+webserver-ws-endpoint = 0.0.0.0:8090
+
+webserver-thread-pool-size = 256
+# Endpoint for TLS websocket RPC to listen on
+# rpc-tls-endpoint =
+
+# The TLS certificate file for this server
+# server-pem =
+
+# Password for this certificate
+# server-pem-password =
+
+# API user specification, may be specified multiple times
+# api-user =
+
+################################################################ SEEDS ################################################################
 
 # P2P nodes to connect to on startup (may specify multiple times)
 p2p-seed-node = hive-seed.arcange.eu:2001           #  @arcange         (BE, Wavre)          (ASN: Proximus NV)
@@ -39,34 +71,26 @@ p2p-seed-node = hiveseed-fin.privex.io:2001         #  @privex          (FI, Hel
 p2p-seed-node = seed.liondani.com:2016              #  @liondani        (GB, Maidstone)      (ASN: HostDime.com, Inc.)
 p2p-seed-node = hiveseed-se.privex.io:2001          #  @privex          (SE, Stockholm)      (ASN: Privex Inc.)
 
+###########################################################  END SEEDS ################################################################
 
 # Pairs of [BLOCK_NUM,BLOCK_ID] that should be enforced as checkpoints.
 # checkpoint =
 
-# Endpoint for websocket RPC to listen on
-
-webserver-http-endpoint = 0.0.0.0:8091
-webserver-ws-endpoint = 0.0.0.0:8090
-
-# Endpoint for TLS websocket RPC to listen on
-# rpc-tls-endpoint =
-
-# The TLS certificate file for this server
-# server-pem =
-
-# Password for this certificate
-# server-pem-password =
-
 # Block signing key to use for init witnesses, overrides genesis file
 # dbg-init-key =
 
-# API user specification, may be specified multiple times
-# api-user =
+#################################################################################
+#                                                                               #
+#                        PLUGIN/RPC CONFIGURATION                               #
+#                                                                               #
+#################################################################################
 
 # Plugin(s) to enable, may be specified multiple times
 plugin = witness condenser_api network_broadcast_api database_api block_api
 # account_by_key is enabled by default - required to use 'get_witness' and 'get_account' in cli_wallet
 plugin = account_by_key account_by_key_api
+# required for creating and importing Hive 1.24+ State Snapshots
+plugin = state_snapshot
 
 #####################
 # The plugins listed below this line are intended for account history / full nodes
@@ -76,11 +100,25 @@ plugin = account_by_key account_by_key_api
 #plugin = webserver p2p json_rpc
 #plugin = rc_api
 
-#plugin = account_history_rocksdb
-#plugin = account_history_api
+###
+# For Account History - pick just ONE of the below two lines to uncomment.
+# As of Hive 1.24 (HF24) - Account History RocksDB is STRONGLY recommended
+# over the standard account history plugin.
+###
+#plugin = account_history_rocksdb account_history_api
+#plugin = account_history account_history_api
 
+# Transaction Status API (Added in HF24?)
+#plugin = transaction_status transaction_status_api
+#transaction-status-block-depth = 64000
+#transaction-status-track-after-block = 46000000
+
+# Reputation + Market History plugins. Required for Hivemind.
 #plugin = reputation reputation_api
 #plugin = market_history market_history_api
+market-history-bucket-size = [15,60,300,3600,86400]
+market-history-buckets-per-size = 5760
+
 # NOTE: tags + follow plugins are deprecated in-place of Hivemind: https://gitlab.syncad.com/hive/hivemind
 #plugin = tags tags_api
 #plugin = follow follow_api
@@ -107,8 +145,22 @@ enable-stale-production = false
 # Percent of witnesses (0-99) that must be participating in order to produce blocks
 required-participation = 33
 
+#################################################################################
+#                                                                               #
+#                           WITNESS CONFIGURATION                               #
+#                                                                               #
+#################################################################################
+
 # name of witness controlled by this node (e.g. initwitness )
+# the username MUST be wrapped in double quotes.
+# Example: witness = "someguy123"
 # witness =
+
+# WIF PRIVATE KEY to be used by one or more witnesses or miners
+# Use cli_wallet ( ./run.sh wallet || ./run.sh remote_wallet ) and the command 'suggest_brain_key'
+# to generate a random private key. Enter the wif_priv_key here.
+# Example: private-key = 5JFyopMgaXJJycEaJcoch7RygGMhhEjBC6jxCovWtshFDGq7Nw4
+# private-key =
 
 # name of miner and its private key (e.g. ["account","WIF PRIVATE KEY"] )
 # miner =
@@ -116,8 +168,6 @@ required-participation = 33
 # Number of threads to use for proof of work mining
 # mining-threads =
 
-# WIF PRIVATE KEY to be used by one or more witnesses or miners
-# private-key =
 
 # Account creation fee to be voted on upon successful POW - Minimum fee is 100.000 STEEM (written as 100000)
 # miner-account-creation-fee =
@@ -127,6 +177,11 @@ required-participation = 33
 
 # SBD interest rate to be vote on upon successful POW - Default interest rate is 10% (written as 1000)
 # miner-sbd-interest-rate =
+#################################################################################
+#                                                                               #
+#                           LOGGING CONFIGURATION                               #
+#                                                                               #
+#################################################################################
 
 # Console appender definition json: {"appender", "stream"}
 log-appender = {"appender":"stderr","stream":"std_error"}
