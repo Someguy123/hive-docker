@@ -173,6 +173,18 @@ fi
 : ${CONFIG_FILE="${DATADIR}/witness_node_data_dir/config.ini"}
 : ${NETWORK="hive"}
 
+########
+# To simplify changing between file server domains / IP addresses for all forms
+# of downloadable blockchain files / chain state - including via both RSYNC and HTTP(S),
+# the 'DL_SERVER' variable allows users to override the download source for every download
+# source variable at once, including BC_HTTP, BC_HTTP_RAW, RSYNC_BASE and others :)
+########
+: ${DL_SERVER="files.privex.io"}
+# By default, DL_SERVER_RSYNC simply matches whatever DL_SERVER is set to.
+# The DL_SERVER_RSYNC variable can be set separately to DL_SERVER if for some reason
+# the Rsync download source(s) are on a different domain than the HTTP sources.
+: ${DL_SERVER_RSYNC="$DL_SERVER"}
+
 
 if [[ "$NETWORK" == "hive" ]]; then
     : ${DOCKER_IMAGE="hive"}
@@ -181,11 +193,11 @@ if [[ "$NETWORK" == "hive" ]]; then
     : ${NETWORK_NAME="Hive"}
     : ${SELF_NAME="Hive-in-a-box"}
     
-    : ${BC_HTTP="http://files.privex.io/hive/block_log.lz4"}        # HTTP or HTTPS url to grab the blockchain from. Set compression in BC_HTTP_CMP
-    : ${BC_HTTP_RAW="http://files.privex.io/hive/block_log"}        # Uncompressed block_log over HTTP
+    : ${BC_HTTP="http://${DL_SERVER}/hive/block_log.lz4"}        # HTTP or HTTPS url to grab the blockchain from. Set compression in BC_HTTP_CMP
+    : ${BC_HTTP_RAW="http://${DL_SERVER}/hive/block_log"}        # Uncompressed block_log over HTTP
     : ${BC_HTTP_CMP="lz4"}                                          # Compression type, can be "xz", "lz4", or "no" (for no compression)
 
-    : ${RSYNC_BASE="rsync://files.privex.io/hive"}
+    : ${RSYNC_BASE="rsync://${DL_SERVER_RSYNC}/hive"}
     : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
     
     #: ${ROCKSDB_RSYNC="${RSYNC_BASE}/rocksdb/"}                     # Rsync URL for MIRA RocksDB files
@@ -209,10 +221,10 @@ elif [[ "$NETWORK" == "blurt" ]]; then
     : ${NETWORK_NAME="blurt"}
     : ${SELF_NAME="Blurt-in-a-box"}
     
-    : ${BC_HTTP="http://files.privex.io/blurt/block_log.lz4"}        # HTTP or HTTPS url to grab the blockchain from. Set compression in BC_HTTP_CMP
-    : ${BC_HTTP_RAW="http://files.privex.io/blurt/block_log"}        # Uncompressed block_log over HTTP
+    : ${BC_HTTP="http://${DL_SERVER}/blurt/block_log.lz4"}        # HTTP or HTTPS url to grab the blockchain from. Set compression in BC_HTTP_CMP
+    : ${BC_HTTP_RAW="http://${DL_SERVER}/blurt/block_log"}        # Uncompressed block_log over HTTP
     : ${BC_HTTP_CMP="lz4"}                                           # Compression type, can be "xz", "lz4", or "no" (for no compression)
-    : ${RSYNC_BASE="rsync://files.privex.io/blurt"}
+    : ${RSYNC_BASE="rsync://${DL_SERVER_RSYNC}/blurt"}
     : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
     
     #: ${ROCKSDB_RSYNC="${RSYNC_BASE}/rocksdb/"}                     # Rsync URL for MIRA RocksDB files
@@ -249,18 +261,18 @@ fi
 : ${SELF_NAME="Steem-in-a-box"}
 
 # HTTP or HTTPS url to grab the blockchain from. Set compression in BC_HTTP_CMP
-: ${BC_HTTP="http://files.privex.io/steem/block_log.lz4"}
+: ${BC_HTTP="http://${DL_SERVER}/steem/block_log.lz4"}
 
 # Uncompressed block_log over HTTP, used for getting size for truncation, and
 # potentially resuming downloads
-: ${BC_HTTP_RAW="http://files.privex.io/steem/block_log"}
+: ${BC_HTTP_RAW="http://${DL_SERVER}/steem/block_log"}
 
 # Compression type, can be "xz", "lz4", or "no" (for no compression)
 # Uses on-the-fly de-compression while downloading, to conserve disk space
 # and save time by not having to decompress after the download is finished
 : ${BC_HTTP_CMP="lz4"}
 
-: ${RSYNC_BASE="rsync://files.privex.io/steem"}
+: ${RSYNC_BASE="rsync://${DL_SERVER_RSYNC}/steem"}
 # Anonymous rsync daemon URL to the raw block_log, for repairing/resuming
 # a damaged/incomplete block_log. Set to "no" to disable rsync when resuming.
 : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
