@@ -394,7 +394,8 @@ export RED GREEN YELLOW BLUE BOLD NORMAL RESET
 # load helpers
 # source "${SIAB_DIR}/scripts/010_helpers.sh"
 
-siab_load_lib helpers docker stateshot
+siab_load_lib helpers docker stateshot 
+siab_load_lib rpclib
 
 # if the config file doesn't exist, try copying the example config
 if [[ ! -f "$CONF_FILE" ]]; then
@@ -2041,6 +2042,67 @@ clean-logs() {
         sed -e "s/\r\x1B\[0m//g"
 }
 
+
+# usage: log_path="$(_dkr-get-logfile)"
+# outputs the path to the docker log file for the container DOCKER_NAME
+_dkr-get-logfile() {
+    if ! command -v jq &>/dev/null; then
+        >&2 msg red "jq not found. Attempting to install..."
+        sleep 3
+        >&2 sudo apt update
+        >&2 sudo apt install -y jq
+    fi
+    docker inspect "$DOCKER_NAME" | jq -r '.[0].LogPath'
+}
+
+# usage:
+#     _clean-json-logline '{"log": "123456ms example.cpp:123      lorem_ipsum  ] some log message\r\n", "stream": "stdout", "time": "2020-10-15T01:54:23.136155899Z"}'
+#     cat <<< '{"log": "123456ms example.cpp:123      lorem_ipsum  ] some log message\r\n", "stream": "stdout", "time": "2020-10-15T01:54:23.136155899Z"}' | _clean-json-logline
+#
+# Parses a Docker JSON log entry line using jq and sed, and outputs a much cleaner, easier to read, and timestamped log line, with
+# properly working colours.
+# A log line can be fed in either as the first parameter, or via STDIN.
+#
+# For parsing multiple lines (whether via stdin or parameters), see the multi-line function: _clean-json-logline
+#
+_clean-json-logline() {
+    local line L
+    (( $# > 0 )) && line="$1" || read -r line
+    # first, parse the line and print the time + log
+    L=$(jq -r ".time +\" \" + .log" <<<"$line")
+    # then, remove excessive \r's causing multiple line breaks
+    L=$(sed -e "s/\r//" <<< "$L")
+    # now remove the decimal time to make the logs cleaner
+    L=$(sed -e 's/\..*Z//' <<< "$L")
+    # remove the steem ms time because most people don't care
+    L=$(sed -e 's/[0-9]\+ms //' <<< "$L")
+    # and finally, strip off any duplicate new line characters
+    L=$(tr -s "\n" <<< "$L")
+    printf '%s\r\n' "$L"
+}
+
+: ${CLEAN_JSON_LOOP_TIMEOUT=20}
+: ${CLEAN_JSON_INIT_TIMEOUT=3}
+
+_clean-json-loglines() {
+    local line
+    if (( $# > 0 )); then
+        for line in "$@"; do
+            _clean-json-logline <<< "$line"
+        done
+        return $?
+    fi
+
+    if read -t $CLEAN_JSON_INIT_TIMEOUT -r line; then
+        _clean-json-logline <<< "$line"
+        while read -t $CLEAN_JSON_LOOP_TIMEOUT -r line; do
+            _clean-json-logline <<< "$line"
+        done
+        return $?
+    fi
+    return 1
+}
+
 # Usage: ./run.sh tslogs
 # (warning: may require root to work properly in some cases)
 # Shows the Steem logs, but with UTC timestamps extracted from the docker logs.
@@ -2051,38 +2113,8 @@ clean-logs() {
 #                   on block 28398481 by someguy123 -- Block Time Offset: -345 ms
 #
 tslogs() {
-    if [[ ! $(command -v jq) ]]; then
-        msg red "jq not found. Attempting to install..."
-        sleep 3
-        sudo apt update
-        sudo apt install -y jq
-    fi
-    local LOG_PATH=$(docker inspect "$DOCKER_NAME" | jq -r .[0].LogPath)
-    local pipe="$(mktemp).fifo"
-    trap "rm -f '$pipe'" EXIT
-    if [[ ! -p "$pipe" ]]; then
-        mkfifo "$pipe"
-    fi
-    # the sleep is a dirty hack to keep the pipe open
-
-    sleep 10000 < "$pipe" &
-    tail -n 100 -f "$LOG_PATH" &> "$pipe" &
-    while true
-    do
-        if read -r line <"$pipe"; then
-            # first, parse the line and print the time + log
-            L=$(jq -r ".time +\" \" + .log" <<<"$line")
-            # then, remove excessive \r's causing multiple line breaks
-            L=$(sed -e "s/\r//" <<< "$L")
-            # now remove the decimal time to make the logs cleaner
-            L=$(sed -e 's/\..*Z//' <<< "$L")
-            # remove the steem ms time because most people don't care
-            L=$(sed -e 's/[0-9]\+ms //' <<< "$L")
-            # and finally, strip off any duplicate new line characters
-            L=$(tr -s "\n" <<< "$L")
-            printf '%s\r\n' "$L"
-        fi
-    done
+    local LOG_PATH="$(_dkr-get-logfile)"
+    tail -n 100 -f "$LOG_FILE" | _clean-json-loglines
 }
 
 # Internal use only
@@ -2108,6 +2140,64 @@ simplecommitlog() {
     git --no-pager log --pretty=format:"$commit_format" $args
 }
 
+_flatcommitlog() {
+    local commit_format="format:%C(yellow)%h  ||%Cred%an  ||%Cblue%cd||%Cgreen%s%n"
+    git --no-pager log --color=always --date=relative --pretty="${commit_format}" "$@"
+}
+flatcommitlog() {
+    local gargs
+    
+    gargs=()
+
+    if (( $# >= 2 )); then
+        gargs+=("-n" "$2" "$1")
+    elif (( $# > 0 )); then
+        gargs+=("$1")
+    fi
+    _flatcommitlog "${gargs[@]}" | column -t -s '||' 2>/dev/null
+}
+
+is-git-uptodate() {
+    git remote update >/dev/null
+    git_update=$(git status -uno)
+    grep -Eiq "up.to.date" <<< "$git_update"
+}
+
+# show-git-updates [format=flat] [remote_ref=origin/master] [count=infinite]
+show-git-updates() {
+    local log_fmt="flat" remote_ref="origin/master" count=0
+    local fullref xgargs
+    current_branch=$(git branch | grep '\*' | cut -d ' ' -f2)
+    xgargs=()
+    (( $# > 0 )) && log_fmt="$1"
+    (( $# > 1 )) && remote_ref="$2"
+    (( $# > 2 )) && count="$3"
+    
+    if is-git-uptodate; then
+        >&2 msg nots bold yellow " [+++] Your current branch '${current_branch} is already synced up to it's upstream ( ${remote_ref} )\n"
+        return
+    fi
+
+    fullref="HEAD..${remote_ref}"
+    
+    xgargs+=("$fullref")
+    if (( count > 0 )); then xgargs+=("$count"); fi
+    
+    if [[ "$remote_ref" == "origin/${current_branch}" ]]; then
+
+        >&2 msg nots bold cyan " >>> New updates are available via Git from the upstream/origin Git branch: '${remote_ref}'"
+        >&2 msg nots bold cyan " >>> You should run 'git pull' if you want to download these new updates :)\n"
+    else
+        >&2 msg nots bold cyan " >>> New updates are available if you upgrade to / pull the remote branch '${remote_ref}'"
+        >&2 msg nots bold cyan " >>> Warning: Cannot confirm whether or not '${remote_ref}' is the upstream branch for your current active branch: ${current_branch}\n"
+    fi
+    >&2 msg nots bold green " --- New commits between Git refs '${fullref}' ---"
+    if [[ "$log_fmt" == "simple" ]]; then
+        simplecommitlog "${xgargs[@]}"
+    else
+        flatcommitlog "${xgargs[@]}"
+    fi
+}
 
 # Usage: ./run.sh ver
 # Displays information about your Steem-in-a-box version, including the docker container
@@ -2525,6 +2615,35 @@ publish() {
     msg bold green " >> Finished"
 }
 
+health() {
+
+    MSG_TS_DEFAULT=0
+    set +euE
+    set +o pipefail
+    local dk_ver="$(_docker_int_autorm cat /steem_build.txt | sed -rn 's#Git version/commit\:[ \t]+([a-zA-Z0-9._-]+)#\1#p')"
+    local dk_logpath="$(_dkr-get-logfile)"
+    local dk_lastline dk_runver
+    dk_lastline=$(tail -n 100 "$dk_logpath" | _clean-json-loglines | grep -E 'Got [0-9]+ transactions on' | tail -n 1)
+    dk_runver=$(grep 'blockchain version' "$dk_logpath" | _clean-json-loglines | sed -rn 's#.*blockchain version:[ \t]+([a-zA-Z0-9._-]+)#\1#p')
+    sb_privkey="$(grep --context=2 -E '^private-key[ \t]+=' "$CONFIG_FILE" | sed -rn 's/.*private-key[\t ]+?=[\t ]+?(5[a-zA-Z0-9]+)$/\1/p')"
+    sb_pubkey="$(grep --context=2 -E '^private-key[ \t]+=' "$CONFIG_FILE" | sed -rn 's/.*(STM[a-zA-Z0-9]+).*/\1/p')"
+
+    {
+        msg nots bold cyan "Hostname:\t${GREEN}${HOSTNAME}"
+        CURL_BIN="docker exec $DOCKER_NAME curl"
+        export CURL_BIN
+        rpc-health "http://127.0.0.1:8091" | grep -Ev '^Host'
+        #msg nots bold cyan "Currently Running Version:              ${GREEN}${dk_runver}"
+        msg nots bold cyan "Installed Image Version:\t${GREEN}${dk_ver}"
+        msg nots bold cyan "Signing Private Key:\t${GREEN}${sb_privkey}"
+        msg nots bold cyan "Signing Public Key:\t${GREEN}${sb_pubkey}"
+    } | sed -r 's/: [ ]+/\t/' | column -t -s $'\t' 
+
+    msg nots bold cyan "Latest block received (from logs): \n"
+    msg nots green     "    $dk_lastline\n"
+
+}
+
 
 if [ "$#" -lt 1 ]; then
     help
@@ -2541,6 +2660,9 @@ case $1 in
         ;;
     build_local)
         build_local "${@:2}"
+        ;;
+    health)
+        health "${@:2}"
         ;;
     install_docker)
         install_docker

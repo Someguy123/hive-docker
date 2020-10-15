@@ -24,6 +24,7 @@ if ! array-exists SIAB_LIB_LOADED; then
         [config]=0
         [docker]=0
         [stateshot]=0
+        [rpclib]=0
     )
     
 fi
@@ -39,6 +40,7 @@ if ! array-exists SIAB_LIBS; then
         [config]="${SIAB_SCRIPTS_DIR}/020_config.sh"
         [docker]="${SIAB_SCRIPTS_DIR}/030_docker.sh"
         [stateshot]="${SIAB_SCRIPTS_DIR}/040_stateshot.sh"
+        [rpclib]="${SIAB_SCRIPTS_DIR}/050_rpclib.sh"
     )
 fi
 
