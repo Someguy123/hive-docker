@@ -1765,7 +1765,7 @@ _docker_run_base() {
 # and the docker args '--rm' and '-i' are appended to DKR_RUN_ARGS
 _docker_int_autorm() {
     : "${DKR_MOUNT_VOLS=1}"
-    DKR_RUN_ARGS=("--rm" "-i")
+    DKR_RUN_ARGS+=("--rm" "-i")
     _docker_run_base "$@"
 }
 
