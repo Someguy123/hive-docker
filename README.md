@@ -2,12 +2,12 @@
 
 **Hive-in-a-box** is a toolkit for using the Hive [docker images](https://hub.docker.com/r/someguy123/hive/tags/) published by @someguy123.
 
-It's purpose is to simplify the deployment of Hive (`steemd`) nodes.
+It's purpose is to simplify the deployment of Hive (`hived`) nodes.
 
 Features:
 
  - Automatic docker installer
- - Easily update Hive (steemd, cli_wallet etc.) with binary images
+ - Easily update Hive (hived, cli_wallet etc.) with binary images
  - Easily build your own new versions of Hive by editing the docker files
  - Single command to download and install block_log from @Privex 's server
  - Easily adjust /dev/shm size
@@ -49,7 +49,7 @@ nano .env
 # Please be aware that the shared memory size changes constantly. Ask in a witness chatroom if you're unsure.
 ./run.sh shm_size 64G
 
-# Then after you've downloaded the blockchain, you can start steemd in replay mode
+# Then after you've downloaded the blockchain, you can start hived in replay mode
 ./run.sh replay
 # If you DON'T want to replay, use "start" instead
 ./run.sh start
@@ -102,7 +102,7 @@ If you experience issues during restart, try running replay instead. You may als
 
 # Checking the status of your node
 
-You can use the `logs` command to see the output from steemd:
+You can use the `logs` command to see the output from hived:
 
 ```
 ./run.sh logs
@@ -114,7 +114,7 @@ You can also connect the local wallet using:
 ./run.sh wallet
 ```
 
-Be aware, you can't connect cli_wallet until your steemd has finished replaying.
+Be aware, you can't connect cli_wallet until your hived has finished replaying.
 
 # Environment options
 
@@ -134,8 +134,8 @@ The above `.env` file will set your docker container name to "witness", instead 
 
 Full list of possible configuration options:
 
- - **PORTS** - default `2001` - a comma separated list of ports in steemd to forward to the internet
- - **DOCKER_NAME** - default `seed` - the container name to use for your steemd server
+ - **PORTS** - default `2001` - a comma separated list of ports in hived to forward to the internet
+ - **DOCKER_NAME** - default `seed` - the container name to use for your hived server
  - **DOCKER_DIR** - default `$DIR/dkr` - The directory to build the low memory node docker image from
  - **FULL_DOCKER_DIR** - default `$DIR/dkr_fullnode` - The directory to build the full-node RPC node docker image from
  - **DK_TAG** - default `someguy123/hive:latest` - The docker tag to obtain Hive from. Useful for installing beta versions, or downgrading to previous versions.
