@@ -197,6 +197,9 @@ if [[ "$NETWORK" == "hive" ]]; then
     : ${BC_HTTP_RAW="http://${DL_SERVER}/hive/block_log"}        # Uncompressed block_log over HTTP
     : ${BC_HTTP_CMP="lz4"}                                          # Compression type, can be "xz", "lz4", or "no" (for no compression)
 
+    # HTTP or HTTPS url to grab shared_memory.bin from. Set compression in BC_HTTP_CMP
+    : ${SHM_HTTP="http://${DL_SERVER}/hive/shared_memory.bin.lz4"}
+
     : ${RSYNC_BASE="rsync://${DL_SERVER_RSYNC}/hive"}
     : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
     
@@ -263,6 +266,9 @@ fi
 # HTTP or HTTPS url to grab the blockchain from. Set compression in BC_HTTP_CMP
 : ${BC_HTTP="http://${DL_SERVER}/steem/block_log.lz4"}
 
+# HTTP or HTTPS url to grab shared_memory.bin from. Set compression in BC_HTTP_CMP
+: ${SHM_HTTP="http://${DL_SERVER}/steem/shared_memory.bin.lz4"}
+
 # Uncompressed block_log over HTTP, used for getting size for truncation, and
 # potentially resuming downloads
 : ${BC_HTTP_RAW="http://${DL_SERVER}/steem/block_log"}
@@ -276,6 +282,7 @@ fi
 # Anonymous rsync daemon URL to the raw block_log, for repairing/resuming
 # a damaged/incomplete block_log. Set to "no" to disable rsync when resuming.
 : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
+: ${SHM_RSYNC="${RSYNC_BASE}/shared_memory.bin"}                # Anonymous rsync daemon URL to shared_memory.bin
 
 : ${ROCKSDB_RSYNC="${RSYNC_BASE}/rocksdb/"}                     # Rsync URL for MIRA RocksDB files
 
@@ -318,6 +325,7 @@ fi
 : ${AUTO_FIX_BLOCKINDEX=0}
 : ${AUTO_FIX_ROCKSDB=0}
 : ${AUTO_FIX_SNAPSHOT=0}
+: ${AUTO_FIX_SHM=0}
 
 # If AUTO_FIX_BLOCKLOG is set to 1, this controls whether we verify block_log via checksummed rsync, in the
 # event that the local block_log is the same size as the remote block_log
@@ -929,6 +937,86 @@ fix-blocks-rocksdb() {
     fi
 }
 
+fix-blocks-shm() {
+    local shm_exists=0 shm_file="${SHM_DIR}/shared_memory.bin"
+    local snap_prompt=" ${MAGENTA}Do you want to synchronise your shared_memory.bin file with the server?${RESET}" 
+    if [[ -f "$shm_file" ]]; then
+        shm_exists=1 
+    fi
+
+    msg
+    msg bold green " ========================================================================"
+    msg bold green " =                                                                      ="
+    msg bold green " =               Download ${NETWORK_NAME} Shared Memory File                       ="
+    msg bold green " =                                                                      ="
+    msg bold green " =                  ( !!! NOT RECOMMENDED !!! )                         ="
+    msg bold green " =                                                                      ="
+    msg bold green " ========================================================================"
+    msg
+    if [[ ! -d "$(dirname "$shm_file")" ]]; then
+        msgerr yellow " [!!!] The folder which is supposed to contain your shared_memory.bin file DOES NOT EXIST."
+        msgerr yellow " [!!!] Auto-creating folder... Folder is: $(dirname "$shm_file")"
+        mkdir -vp "$(dirname "$shm_file")"
+    fi
+
+    msg nots yellow " >> If you have problems using the standard Hive State Snapshot system, for example, on systems with <=8GB RAM,"
+    msg nots yellow " >> then you MAY be able to use a published 'shared_memory.bin' file instead."
+    msg
+    msg nots red    " >> Please be warned! Unlike regular State Snapshots - using a shared_memory.bin file requires that **almost everything**" 
+    msg nots red    " >> in your Hive installation matches the system where the shared_memory.bin file was originally created on."
+    msg nots red    " >> With the official Privex 'shared_memory.bin' file, the key requirements to be able to use it are as follows:"
+    msg
+    msg nots bold cyan   "     * You must be running one of my (Someguy123) published low-memory (seed/witness) Docker images,"
+    msg nots bold cyan   "       and your version should ideally be exactly the same as what the creation server used."
+    msg
+    msg nots bold cyan   "       If you built your own image file using './run.sh build', then it's unlikely that the published"
+    msg nots bold cyan   "       shared_memory.bin file will work on your system."
+    msg
+    msg nots bold cyan   "       We publish information about the creation environment here: https://files.privex.io/hive/state-README.txt"
+    msg
+    msg
+    msg nots bold cyan   "     * Your 'block_log' AND 'block_log.index' must 100% match the block_log and index used by the creation server."
+    msg nots bold cyan   "       For the default 'files.privex.io' data source, we try to ensure that the block_log and index available for"
+    msg nots bold cyan   "       download match the block log + index of the server we created the shared_memory.bin file on. "
+    msg
+    msg
+    msg nots bold cyan   "     * You must be running the default witness/seed plugins that are enabled by default on a ${SELF_NAME} installation."
+    msg nots bold cyan   "       However, you should be able to also enable any plugins which **do not require a replay**, such as block_api."
+    msg
+    msg
+    msg nots bold cyan   "     * In some cases, the shared_memory.bin file may be incompatible with your ${SELF_NAME} setup for varying reasons,"
+    msg nots bold cyan   "       sometimes a shared_memoey.bin file can be rejected by the ${NETWORK_NAME} simply because your CPU is different..."
+    msg
+    msg
+    msg nots cyan   "    Local Shared Memory File:           ${BOLD}${SHM_DIR}/shared_memory.bin"
+    msg nots cyan   "    Remote Shared Memory source:        ${BOLD}$SHM_RSYNC"
+    msg
+
+
+    _fb_shm_inner() {
+        msg
+        msg nots green "\n [...] Updating shared_memory.bin files to match the remote server's copy ..."
+        rsync -avIh --progress --sparse "${SHM_RSYNC}" "$shm_file"
+        msg
+        msg green " [+++] Finished downloading/validating shared memory file into ${shm_file} \n"
+    }
+ 
+    if (( shm_exists )); then
+        msg nots cyan   "    Local shared_memory.bin file exists:    ${BOLD}${GREEN}YES"
+    else
+        msg nots cyan   "    Local shared_memory.bin file exists:    ${BOLD}${RED}NO"
+    fi
+    msg
+    
+    if (( shm_exists == 0 )) && _fixbl_prompt "$AUTO_FIX_SHM" "$snap_prompt (Y/n) > " defyes; then
+        _fb_shm_inner
+    elif (( shm_exists )) && _fixbl_prompt "$AUTO_FIX_SHM" "$snap_prompt (y/N) > " defno; then
+        _fb_shm_inner
+    else
+        msg nots red "\n [!!!] Not synchronising shared memory file with remote server \n"
+    fi
+}
+
 fix-blocks-snapshot() {
     msg
     msg bold green " ========================================================================"
@@ -984,7 +1072,7 @@ _fix_blocks_help() {
     MSG_TS_DEFAULT=0
     msg
     msg green "Usage:"
-    msg green "    $0 fix-blocks (blocklog|index|rocksdb|all) (auto)"
+    msg green "    $0 fix-blocks (blocklog|index|snapshot|shm|rocksdb|all) (auto)"
     msg
     msg yellow "Examples:"
     msg bold   "\t # Download/replace/repair the block_log, block_log.index, and rocksdb files - prompting user before starting each action"
@@ -1040,6 +1128,10 @@ _fix_blocks_help() {
     msg
     msg green " index / blockindex / block_index   - Download / replace / repair local block_log.index from remote blockchain mirror, using rsync with checksumming. "
     msg
+    msg green " snap / snapshot                    - Download / update / repair local 'privexsnap' Hive state snapshot from remote mirror, using rsync"
+    msg
+    msg green " shm / shared / mem / memory        - Download / update / repair local 'shared_memory.bin' state file from remote mirror, using rsync"
+    msg
     msg green " rocksdb / rocks / mira             - Download / replace / repair local RocksDB files (for MIRA images) from remote blockchain mirror, "
     msg green "                                      using rsync with checksumming, and partial-dir allowing for resuming of download if it fails. "
     msg
@@ -1071,6 +1163,9 @@ fix-blocks() {
             snap*)
                 fix-blocks-snapshot
                 return $?;;
+            shm*|shared*|mem*|SHM*|SHARED*|MEM*)
+                fix-blocks-shm
+                return $?;;
             all)
                 echo
                 ;;
@@ -1091,6 +1186,8 @@ fix-blocks() {
     fix-blocks-index "${local_bl}.index"
     msg "\n"
     fix-blocks-snapshot
+    msg "\n"
+    fix-blocks-shm
     msg "\n"
     #fix-blocks-rocksdb
     #msg "\n"
