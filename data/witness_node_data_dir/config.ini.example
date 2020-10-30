@@ -40,7 +40,7 @@ webserver-ws-endpoint = 0.0.0.0:8090
 
 # If you plan to use this server as an actual RPC node with a moderately high volume of requests,
 # then you should increase this - between 64 and 256 are sensible thread pool sizes for an RPC node.
-webserver-thread-pool-size = 16
+webserver-thread-pool-size = 2
 
 # Endpoint for TLS websocket RPC to listen on
 # rpc-tls-endpoint =
