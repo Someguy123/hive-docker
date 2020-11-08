@@ -162,10 +162,11 @@ Full list of `./run.sh` commands:
  - **build_full** - build the full node version of hive into a docker image from source
  - **logs** - display the logs of the container with automatic follow. press ctrl-c to exit
  - **enter** - open a bash prompt inside of the container for debugging
+ 
 
 # Hive Post
 
-Hive Post for installing HF23: https://hive.blog/hive-139531/@someguy123/how-to-set-up-a-hive-witness-or-seed-node-non-mira-upgrade-from-steem-docker-to-hive-docker
+Hive Post for installing HF24: https://peakd.com/hive-139531/@rishi556/how-to-set-up-a-hive-witness-using-hiab-at-version-1-24-4
 
 # LICENSE
 
