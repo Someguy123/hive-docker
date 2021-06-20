@@ -2212,7 +2212,7 @@ _clean-json-loglines() {
 #
 tslogs() {
     local LOG_PATH="$(_dkr-get-logfile)"
-    tail -n 100 -f "$LOG_FILE" | _clean-json-loglines
+    tail -n 100 -f "$LOG_PATH" | _clean-json-loglines
 }
 
 # Internal use only
