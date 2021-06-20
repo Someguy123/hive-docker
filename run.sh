@@ -508,6 +508,7 @@ help() {
     remote_wallet   - open cli_wallet in the container connecting to a remote seed
 
     enter           - enter a bash session in the currently running container
+    health          - shows health of node for ensuring its running properly
     shell           - launch the ${NETWORK_NAME} container with appropriate mounts, then open bash for inspection
     "
     echo
