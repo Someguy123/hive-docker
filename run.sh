@@ -166,9 +166,11 @@ DKR_VOLUMES=() EXTRA_VOLUMES=()
 
 STEEM_REPLAY_ARGS=()
 
-if [[ -f .env ]]; then
-    source .env
-fi
+#Find all .env files and source the options for the docker container
+for f in *.env
+do
+    source $f
+done
 
 : ${CONFIG_FILE="${DATADIR}/witness_node_data_dir/config.ini"}
 : ${NETWORK="hive"}
