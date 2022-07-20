@@ -3,7 +3,7 @@
 _XDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${_XDIR}/core.sh"
 
-SIAB_LIB_LOADED[config]=1 # Mark this library script as loaded successfully
+HIAB_LIB_LOADED[config]=1 # Mark this library script as loaded successfully
 
 : ${CONFIG_FILE="${_XDIR}/../data/witness_node_data_dir/config.ini"}
 

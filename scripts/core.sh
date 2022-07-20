@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SIAB_SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+HIAB_SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # return 0 if array (i.e. x=() ) exists, otherwise return 1
 array-exists() { declare -p "$1" &> /dev/null; }
@@ -22,5 +22,5 @@ add-tmpfile() {
 add-tempfile() { add-tmpfile; }
 
 
-{ ! array-exists SIAB_LIB_LOADED || ! array-exists SIAB_LIBS ; } && source "${SIAB_SCRIPTS_DIR}/siab_libs.sh" || true
+{ ! array-exists HIAB_LIB_LOADED || ! array-exists HIAB_LIBS ; } && source "${HIAB_SCRIPTS_DIR}/HIAB_libs.sh" || true
 

@@ -70,22 +70,23 @@ webserver-thread-pool-size = 4
 ################################################################ SEEDS ################################################################
 
 # P2P nodes to connect to on startup (may specify multiple times)
-p2p-seed-node = hive-seed.arcange.eu:2001           #  @arcange         (BE, Wavre)          (ASN: Proximus NV)
-p2p-seed-node = anyx.io:2001                        #  @anyx            (CA)                 (ASN: OVH SAS)
-p2p-seed-node = seed.thecryptodrive.com:2001        #  @thecryptodrive  (DE, Esslingen)      (ASN: Hetzner Online GmbH)
-p2p-seed-node = seed.buildteam.io:2001              #  @buildteam       (DE)                 (ASN: Hetzner Online GmbH)
-p2p-seed-node = seed.hivekings.com:2001             #  @drakos          (DE, Nuremberg)      (ASN: Contabo GmbH)
-p2p-seed-node = gtg.steem.house:2001                #  @gtg             (PL)                 (ASN: OVH SAS)
-p2p-seed-node = seed.openhive.network:2001          #  @gtg             (PL)                 (ASN: OVH SAS)
-p2p-seed-node = hive-seed.roelandp.nl:2001          #  @roelandp        (FI, Helsinki)       (ASN: Hetzner Online GmbH)
-p2p-seed-node = node.mahdiyari.info:2001            #  @mahdiyari       (FI, Helsinki)       (ASN: Hetzner Online GmbH)
-p2p-seed-node = hived.hive-engine.com:2001          #  @aggroed         (FI)                 (ASN: Hetzner Online GmbH)
-p2p-seed-node = hived.splinterlands.com:2001        #  @aggroed         (FI)                 (ASN: Hetzner Online GmbH)
-p2p-seed-node = rpc.ausbit.dev:2001                 #  @ausbitbank      (FI, Tuusula)        (ASN: Hetzner Online GmbH)
-p2p-seed-node = seed.chitty.me:2001                 #  @chitty          (FI)                 (ASN: Hetzner Online GmbH)
-p2p-seed-node = hiveseed-fin.privex.io:2001         #  @privex          (FI, Helsinki)       (ASN: Hetzner Online GmbH)
-p2p-seed-node = seed.liondani.com:2016              #  @liondani        (GB, Maidstone)      (ASN: HostDime.com, Inc.)
-p2p-seed-node = hiveseed-se.privex.io:2001          #  @privex          (SE, Stockholm)      (ASN: Privex Inc.)
+p2p-seed-node = api.hive.blog:2001              # blocktrades
+p2p-seed-node = seed.openhive.network:2001      # gtg
+p2p-seed-node = seed.ecency.com:2001            # good-karma
+p2p-seed-node = rpc.ausbit.dev:2001             # ausbitbank
+p2p-seed-node = hive-seed.roelandp.nl:2001      # roelandp
+p2p-seed-node = hive-seed.arcange.eu:2001       # arcange
+p2p-seed-node = anyx.io:2001                    # anyx
+p2p-seed-node = hived.splinterlands.com:2001    # aggroed
+p2p-seed-node = seed.hive.blue:2001             # guiltyparties
+p2p-seed-node = hive-api.3speak.tv:2001         # threespeak
+p2p-seed-node = node.mahdiyari.info:2001        # mahdiyari
+p2p-seed-node = hive-seed.lukestokes.info:2001  # lukestokes.mhth
+p2p-seed-node = api.deathwing.me:2001           # deathwing
+p2p-seed-node = seed.liondani.com:2016          # liondani
+p2p-seed-node = hiveseed-se.privex.io:2001      # privex
+p2p-seed-node = seed.mintrawa.com:2001          # mintrawa
+
 
 ###########################################################  END SEEDS ################################################################
 
@@ -115,14 +116,6 @@ plugin = state_snapshot
 
 #plugin = webserver p2p json_rpc
 #plugin = rc_api
-
-###
-# For Account History - pick just ONE of the below two lines to uncomment.
-# As of Hive 1.24 (HF24) - Account History RocksDB is STRONGLY recommended
-# over the standard account history plugin.
-###
-#plugin = account_history_rocksdb account_history_api
-#plugin = account_history account_history_api
 
 # Transaction Status API (Added in HF24?)
 #plugin = transaction_status transaction_status_api
@@ -218,9 +211,6 @@ witness-skip-enforce-bandwidth = 1
 
 # Disables automatic account history trimming
 history-disable-pruning = 0
-
-# The location of the rocksdb database for account history. By default it is $DATA_DIR/blockchain/account-history-rocksdb-storage
-account-history-rocksdb-path = "blockchain/account-history-rocksdb-storage"
 
 # Defines a range of accounts to track as a json pair ["from","to"] [from,to] Can be specified multiple times.
 # account-history-rocksdb-track-account-range = 

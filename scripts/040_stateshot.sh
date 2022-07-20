@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 _XDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${_XDIR}/core.sh"
-SIAB_LIB_LOADED[stateshot]=1 # Mark this library script as loaded successfully
+HIAB_LIB_LOADED[stateshot]=1 # Mark this library script as loaded successfully
 
-siab_load_lib helpers config
+hiab_load_lib helpers config
 
 : ${STATESHOT_BASE="https://se1.files.privex.io/hive/stateshots"}
 : ${STATESHOT_INDEX="${STATESHOT_BASE}/state_index.txt"}

@@ -18,12 +18,12 @@
 _XDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${_XDIR}/core.sh"
 
-SIAB_LIB_LOADED[shellcoresetup]=1 # Mark this library script as loaded successfully
+HIAB_LIB_LOADED[shellcoresetup]=1 # Mark this library script as loaded successfully
 
-# Check that both SIAB_LIB_LOADED and SIAB_LIBS exist. If one of them is missing, then detect the folder where this
+# Check that both HIAB_LIB_LOADED and HIAB_LIBS exist. If one of them is missing, then detect the folder where this
 # script is located, and then source map_libs.sh using a relative path from this script.
 # array-exists() { declare -p "$1" &> /dev/null; }
-# { ! array-exists SIAB_LIB_LOADED || ! array-exists SIAB_LIBS ; } && source "${_XDIR}/siab_libs.sh" || true
+# { ! array-exists HIAB_LIB_LOADED || ! array-exists HIAB_LIBS ; } && source "${_XDIR}/HIAB_libs.sh" || true
 
 
 # returns 0 if version $1 > $2
@@ -65,29 +65,29 @@ _sc_force_update() {
     update_shellcore
     source "${SG_DIR}/load.sh"
     echo "${GREEN} >>> Finished updating ShellCore :) - Current ShellCore Version: ${BOLD}${S_CORE_VER}${RESET}"
-    _SIAB_RELOAD=1   # Inform run.sh that it must reload itself because ShellCore has been updated
+    _HIAB_RELOAD=1   # Inform run.sh that it must reload itself because ShellCore has been updated
 }
 
 _sc_version_check() {
 
-    if ! version_gt "$SIAB_MIN_SC_VER" "$S_CORE_VER"; then
+    if ! version_gt "$HIAB_MIN_SC_VER" "$S_CORE_VER"; then
         return 0
     fi
     echo
     echo "${YELLOW} >>> Steem-in-a-box uses the Privex ShellCore library ( https://github.com/Privex/shell-core ) for certain functionality ${RESET}"
     echo
     echo " >>> Current Privex ShellCore version:     ${BOLD}${S_CORE_VER}${RESET}"
-    echo " >>> Required Privex ShellCore version:    ${BOLD}${SIAB_MIN_SC_VER}${RESET} (or newer)${RESET}"
+    echo " >>> Required Privex ShellCore version:    ${BOLD}${HIAB_MIN_SC_VER}${RESET} (or newer)${RESET}"
     echo
     echo "${YELLOW} >>> To ensure Steem-in-a-box functions correctly, we're going to update your Privex ShellCore installation immediately.${RESET}"
     echo "${YELLOW} >>> ShellCore is installed at: ${BOLD}${SG_DIR}${RESET}"
     _sc_force_update "$@"
 }
 
-_siab_sc_init() {
+_HIAB_sc_init() {
     # Load, or install + load Privex ShellCore.
     _setup_shellcore
-    # Ensure user is running the minimum required version of ShellCore for this SIAB release.
+    # Ensure user is running the minimum required version of ShellCore for this HIAB release.
     # If not, force a ShellCore update and restart the script.
     _sc_version_check "$@"
     # Quietly automatically update Privex ShellCore every 14 days (default)

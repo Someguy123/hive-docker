@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 #####################################################################################################
-# Steem node manager
+# HIVE node manager
 # Released under GNU AGPL by Someguy123
 #
-# Github: https://github.com/Someguy123/steem-docker
+# Github: https://github.com/Someguy123/HIVE-docker
 #
-# **Steem-in-a-box** is a toolkit for using the Steem Docker images[1] published by @someguy123.
-# It's purpose is to simplify the deployment of `steemd` nodes.
+# **HIVE-in-a-box** is a toolkit for using the HIVE Docker images[1] published by @someguy123.
+# It's purpose is to simplify the deployment of `HIVEd` nodes.
 #
 # For more information, see README.md - or run `./run.sh help`
 #
-# [1] https://hub.docker.com/r/someguy123/steem/tags/
+# [1] https://hub.docker.com/r/someguy123/HIVE/tags/
 #
 #####################################################################################################
 
@@ -20,29 +20,29 @@ if [ -t 1 ]; then
     MAGENTA="$(tput setaf 5)" CYAN="$(tput setaf 6)" WHITE="$(tput setaf 7)" RESET="$(tput sgr0)"
 fi
 
-SIAB_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+HIAB_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Array of Privex ShellCore modules to be loaded during ShellCore initialisation.
 SG_LOAD_LIBS=(gnusafe helpers trap_helper traplib)
 # Minimum required version of Privex ShellCore
 # If a version older than this is installed, an update will be forced immediately
-SIAB_MIN_SC_VER="0.4.3"
+HIAB_MIN_SC_VER="0.4.3"
 # Global variable used by 000_shellcore_setup:_sc_force_update to inform run.sh if it needs to restart the script
-_SIAB_RELOAD=0
+_HIAB_RELOAD=0
 
-source "${SIAB_DIR}/scripts/siab_libs.sh"
-source "${SIAB_DIR}/scripts/000_shellcore_setup.sh"
+source "${HIAB_DIR}/scripts/hiab_libs.sh"
+source "${HIAB_DIR}/scripts/000_shellcore_setup.sh"
 
-siab_load_lib shellcoresetup
+hiab_load_lib shellcoresetup
 
 _setup_shellcore
 
-# _siab_sc_init "$@"
+# _HIAB_sc_init "$@"
 
 _sc_version_check "$@"
 
-if (( _SIAB_RELOAD == 1 )); then
-    _SIAB_RELOAD=0
+if (( _HIAB_RELOAD == 1 )); then
+    _HIAB_RELOAD=0
     echo -e "${GREEN} >>> Attempting to restart run.sh using command + args: ${RESET}\n"
     echo "      $0 $*"
     echo
@@ -61,12 +61,12 @@ autoupdate_shellcore
 # 2 = Fully disable non-zero error handling, until manually re-enabled via 'error_control 0' or 'error_control 1'
 error_control 2
 
-# If set to 1, the run.sh function siab_exit() will ALWAYS print a full traceback at the end of each run.sh execution
+# If set to 1, the run.sh function HIAB_exit() will ALWAYS print a full traceback at the end of each run.sh execution
 # even if no error was detected.
-: ${SIAB_TRACE_EXIT=0}
+: ${HIAB_TRACE_EXIT=0}
 
 _ERROR_TRIGGERED=0
-_SIAB_HANDLE_EXIT=1
+_HIAB_HANDLE_EXIT=1
 
 print_traceback() { 
     local trace_depth=1
@@ -74,10 +74,10 @@ print_traceback() {
     msgerr nots bold blue "\nTraceback:\n\n${RESET}${BOLD}$(trap_traceback $trace_depth)\n"
 }
 
-siab_error() {
+HIAB_error() {
     local error_code="$?"
     msg
-    msgerr bold red "A fatal error has occurred and SIAB run.sh must exit."
+    msgerr bold red "A fatal error has occurred and HIAB run.sh must exit."
     (( $# >= 1 )) && msgerr bold red "Line number which triggered this: $1"
     (( $# >= 2 )) && msgerr bold red "Bash command / function which triggered this: $2"
     msg
@@ -86,17 +86,17 @@ siab_error() {
     exit $error_code
 }
 
-siab_exit() {
+HIAB_exit() {
     local error_code="$?"
     (( _ERROR_TRIGGERED > 0 )) && error_code=$_ERROR_TRIGGERED
-    if (( _SIAB_HANDLE_EXIT == 1 )); then
+    if (( _HIAB_HANDLE_EXIT == 1 )); then
         msg
-        # (( error_code == 0 )) && msgerr green "run.sh has finished - exiting SIAB run.sh cleanly."
-        (( error_code != 0 )) && msgerr bold red "[ERROR] SIAB not exiting cleanly. Detected non-zero error code while exiting: $error_code"
+        # (( error_code == 0 )) && msgerr green "run.sh has finished - exiting HIAB run.sh cleanly."
+        (( error_code != 0 )) && msgerr bold red "[ERROR] HIAB not exiting cleanly. Detected non-zero error code while exiting: $error_code"
     fi
 
-    if (( SIAB_TRACE_EXIT == 1 )); then
-        msgerr bold red "[DEBUGGING] Detected SIAB_TRACE_EXIT == 1 - always running traceback on exit. Exit code: $error_code"
+    if (( HIAB_TRACE_EXIT == 1 )); then
+        msgerr bold red "[DEBUGGING] Detected HIAB_TRACE_EXIT == 1 - always running traceback on exit. Exit code: $error_code"
         print_traceback -1
     fi
     exit $error_code
@@ -105,7 +105,7 @@ siab_exit() {
 CLEANUP_FILES=()
 CLEANUP_FOLDERS=()
 
-siab_cleanup() {
+HIAB_cleanup() {
     local path_len f
     for f in "${CLEANUP_FILES[@]}"; do
         path_len=$(len "$f")
@@ -129,28 +129,28 @@ siab_cleanup() {
     done
 }
 
-siab_abort() {
+HIAB_abort() {
     local error_code="$?" s_line="$1" s_cmd="$2" s_signal="$3"
     msg "\n"
     msgerr bold red "[ERROR] Detected signal '$s_signal' while executing line number $s_line - last command: $s_cmd"
     print_traceback
-    [[ "$s_signal" == "SIGINT" ]] && msgerr bold red "[ERROR] SIGINT (CTRL-C) detected. User requested SIAB to exit immediately. Stopping run.sh ..."
+    [[ "$s_signal" == "SIGINT" ]] && msgerr bold red "[ERROR] SIGINT (CTRL-C) detected. User requested HIAB to exit immediately. Stopping run.sh ..."
     msg "\n"
 
-    _SIAB_HANDLE_EXIT=0 && error_control 2
+    _HIAB_HANDLE_EXIT=0 && error_control 2
     exit 5
 }
 
-declare -f -t siab_abort siab_error siab_exit print_traceback
+declare -f -t HIAB_abort HIAB_error HIAB_exit print_traceback
 
-trap_add 'siab_exit' EXIT                                    # ! ! ! TRAP EXIT ! ! !
-trap_add 'siab_error ${LINENO} "$BASH_COMMAND"' ERR          # ! ! ! TRAP ERR ! ! !
-trap_add 'siab_abort ${LINENO} "$BASH_COMMAND" SIGINT' SIGINT
-trap_add 'siab_abort ${LINENO} "$BASH_COMMAND" SIGTERM' SIGTERM
-trap_add 'siab_abort ${LINENO} "$BASH_COMMAND" SIGHUP' SIGHUP
-# trap_add 'siab_error ${LINENO} "$BASH_COMMAND"' SIGINT       # ! ! ! TRAP ERR ! ! !
-# trap_add 'siab_error ${LINENO} "$BASH_COMMAND"' SIGTERM      # ! ! ! TRAP ERR ! ! !
-# trap_add 'siab_error ${LINENO} "$BASH_COMMAND"' SIGHUP      # ! ! ! TRAP ERR ! ! !
+trap_add 'HIAB_exit' EXIT                                    # ! ! ! TRAP EXIT ! ! !
+trap_add 'HIAB_error ${LINENO} "$BASH_COMMAND"' ERR          # ! ! ! TRAP ERR ! ! !
+trap_add 'HIAB_abort ${LINENO} "$BASH_COMMAND" SIGINT' SIGINT
+trap_add 'HIAB_abort ${LINENO} "$BASH_COMMAND" SIGTERM' SIGTERM
+trap_add 'HIAB_abort ${LINENO} "$BASH_COMMAND" SIGHUP' SIGHUP
+# trap_add 'HIAB_error ${LINENO} "$BASH_COMMAND"' SIGINT       # ! ! ! TRAP ERR ! ! !
+# trap_add 'HIAB_error ${LINENO} "$BASH_COMMAND"' SIGTERM      # ! ! ! TRAP ERR ! ! !
+# trap_add 'HIAB_error ${LINENO} "$BASH_COMMAND"' SIGHUP      # ! ! ! TRAP ERR ! ! !
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 : ${DOCKER_DIR="$DIR/dkr"}
@@ -158,13 +158,13 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 : ${DATADIR="$DIR/data"}
 : ${DOCKER_NAME="seed"}
 
-STEEM_RUN_ARGS=()
-STEEM_RUN_ARGS_EXTRA=()
+HIVE_RUN_ARGS=()
+HIVE_RUN_ARGS_EXTRA=()
 DKR_RUN_ARGS=()
 : "${DKR_DRY_RUN=0}"
 DKR_VOLUMES=() EXTRA_VOLUMES=()
 
-STEEM_REPLAY_ARGS=()
+HIVE_REPLAY_ARGS=()
 
 if [[ -f .env ]]; then
     source .env
@@ -188,7 +188,7 @@ fi
 
 if [[ "$NETWORK" == "hive" ]]; then
     : ${DOCKER_IMAGE="hive"}
-    : ${STEEM_SOURCE="https://gitlab.syncad.com/hive/hive.git"}
+    : ${HIVE_SOURCE="https://gitlab.syncad.com/hive/hive.git"}
 
     : ${NETWORK_NAME="Hive"}
     : ${SELF_NAME="Hive-in-a-box"}
@@ -212,14 +212,14 @@ if [[ "$NETWORK" == "hive" ]]; then
     : ${REMOTE_RPC="https://hived.privex.io"}
 
     : ${STOP_TIME=600}          # Amount of time in seconds to allow the docker container to stop before killing it.
-    : ${STEEM_RPC_PORT="8091"}  # Local steemd RPC port, used by commands such as 'monitor' which need to query your steemd's HTTP RPC
+    : ${HIVE_RPC_PORT="8091"}  # Local HIVEd RPC port, used by commands such as 'monitor' which need to query your HIVEd's HTTP RPC
 
-    : ${DKR_DATA_MOUNT="/steem"}    # Mount $DATADIR onto this folder within the container
+    : ${DKR_DATA_MOUNT="/HIVE"}    # Mount $DATADIR onto this folder within the container
     : ${DKR_SHM_MOUNT="/shm"}       # Mount $SHM_DIR onto this folder within the container
     : ${DKR_RUN_BIN="hived"}        # Run this executable within the container
 elif [[ "$NETWORK" == "blurt" ]]; then
     : ${DOCKER_IMAGE="blurt"}
-    : ${STEEM_SOURCE="https://gitlab.com/blurt/blurt.git"}
+    : ${HIVE_SOURCE="https://gitlab.com/blurt/blurt.git"}
 
     : ${NETWORK_NAME="blurt"}
     : ${SELF_NAME="Blurt-in-a-box"}
@@ -239,46 +239,46 @@ elif [[ "$NETWORK" == "blurt" ]]; then
     : ${REMOTE_RPC="https://blurtd.privex.io"}
 
     : ${STOP_TIME=600}          # Amount of time in seconds to allow the docker container to stop before killing it.
-    : ${STEEM_RPC_PORT="8091"}  # Local steemd RPC port, used by commands such as 'monitor' which need to query your steemd's HTTP RPC
+    : ${HIVE_RPC_PORT="8091"}  # Local HIVEd RPC port, used by commands such as 'monitor' which need to query your HIVEd's HTTP RPC
 
-    : ${DKR_DATA_MOUNT="/steem"}    # Mount $DATADIR onto this folder within the container
+    : ${DKR_DATA_MOUNT="/HIVE"}    # Mount $DATADIR onto this folder within the container
     : ${DKR_SHM_MOUNT="/shm"}       # Mount $SHM_DIR onto this folder within the container
     : ${DKR_RUN_BIN="blurtd"}       # Run this executable within the container
 fi
 
 
-: ${DKR_DATA_MOUNT="/steem"}    # Mount $DATADIR onto this folder within the container
+: ${DKR_DATA_MOUNT="/HIVE"}    # Mount $DATADIR onto this folder within the container
 : ${DKR_SHM_MOUNT="/shm"}       # Mount $SHM_DIR onto this folder within the container
-: ${DKR_RUN_BIN="steemd"}       # Run this executable within the container
+: ${DKR_RUN_BIN="HIVEd"}       # Run this executable within the container
 
-# if (( ${#STEEM_RUN_ARGS[@]} == 0 )); then
-#     STEEM_RUN_ARGS+=("--data-dir=${DKR_DATA_MOUNT}/witness_node_data_dir")
+# if (( ${#HIVE_RUN_ARGS[@]} == 0 )); then
+#     HIVE_RUN_ARGS+=("--data-dir=${DKR_DATA_MOUNT}/witness_node_data_dir")
 # fi
 
-(( ${#STEEM_RUN_ARGS_EXTRA[@]} > 0 )) && STEEM_RUN_ARGS+=("${STEEM_RUN_ARGS_EXTRA[@]}")
+(( ${#HIVE_RUN_ARGS_EXTRA[@]} > 0 )) && HIVE_RUN_ARGS+=("${HIVE_RUN_ARGS_EXTRA[@]}")
 
-# the tag to use when running/replaying steemd
-: ${DOCKER_IMAGE="steem"}
+# the tag to use when running/replaying HIVEd
+: ${DOCKER_IMAGE="HIVE"}
 
-: ${NETWORK_NAME="Steem"}
-: ${SELF_NAME="Steem-in-a-box"}
+: ${NETWORK_NAME="HIVE"}
+: ${SELF_NAME="HIVE-in-a-box"}
 
 # HTTP or HTTPS url to grab the blockchain from. Set compression in BC_HTTP_CMP
-: ${BC_HTTP="http://${DL_SERVER}/steem/block_log.lz4"}
+: ${BC_HTTP="http://${DL_SERVER}/HIVE/block_log.lz4"}
 
 # HTTP or HTTPS url to grab shared_memory.bin from. Set compression in BC_HTTP_CMP
-: ${SHM_HTTP="http://${DL_SERVER}/steem/shared_memory.bin.lz4"}
+: ${SHM_HTTP="http://${DL_SERVER}/HIVE/shared_memory.bin.lz4"}
 
 # Uncompressed block_log over HTTP, used for getting size for truncation, and
 # potentially resuming downloads
-: ${BC_HTTP_RAW="http://${DL_SERVER}/steem/block_log"}
+: ${BC_HTTP_RAW="http://${DL_SERVER}/HIVE/block_log"}
 
 # Compression type, can be "xz", "lz4", or "no" (for no compression)
 # Uses on-the-fly de-compression while downloading, to conserve disk space
 # and save time by not having to decompress after the download is finished
 : ${BC_HTTP_CMP="lz4"}
 
-: ${RSYNC_BASE="rsync://${DL_SERVER_RSYNC}/steem"}
+: ${RSYNC_BASE="rsync://${DL_SERVER_RSYNC}/HIVE"}
 # Anonymous rsync daemon URL to the raw block_log, for repairing/resuming
 # a damaged/incomplete block_log. Set to "no" to disable rsync when resuming.
 : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
@@ -290,21 +290,21 @@ fi
 : ${SNAPSHOT_RSYNC="${RSYNC_BASE}/${SNAPSHOT_NAME}/"}           # Rsync URL for Eclipse Snapshot
 : ${SNAPSHOT_OUTDIR="${DATADIR}/witness_node_data_dir/snapshot/${SNAPSHOT_NAME}/"}
 
-: ${DK_TAG_BASE="someguy123/steem"}
+: ${DK_TAG_BASE="someguy123/HIVE"}
 : ${DK_TAG="${DK_TAG_BASE}:latest"}
 : ${DK_TAG_FULL="${DK_TAG_BASE}:latest-full"}
 : ${SHM_DIR="/dev/shm"}
-: ${REMOTE_WS="wss://steemd.privex.io"}
-: ${REMOTE_RPC="https://steemd.privex.io"}
+: ${REMOTE_WS="wss://HIVEd.privex.io"}
+: ${REMOTE_RPC="https://HIVEd.privex.io"}
 # Amount of time in seconds to allow the docker container to stop before killing it.
 # Default: 600 seconds (10 minutes)
 : ${STOP_TIME=600}
 
-# Git repository to use when building Steem - containing steemd code
-: ${STEEM_SOURCE="https://github.com/steemit/steem.git"}
+# Git repository to use when building HIVE - containing HIVEd code
+: ${HIVE_SOURCE="https://github.com/HIVEit/HIVE.git"}
 
-# Local steemd RPC port, used by commands such as 'monitor' which need to query your steemd's HTTP RPC
-: ${STEEM_RPC_PORT="8091"}
+# Local HIVEd RPC port, used by commands such as 'monitor' which need to query your HIVEd's HTTP RPC
+: ${HIVE_RPC_PORT="8091"}
 
 # Comma separated list of ports to expose to the internet.
 # By default, only port 2001 will be exposed (the P2P seed port)
@@ -312,9 +312,6 @@ fi
 
 # blockchain folder, used by dlblocks
 : ${BC_FOLDER="$DATADIR/witness_node_data_dir/blockchain"}
-
-: ${EXAMPLE_MIRA="$DATADIR/witness_node_data_dir/database.cfg.example"}
-: ${MIRA_FILE="$DATADIR/witness_node_data_dir/database.cfg"}
 
 : ${EXAMPLE_CONF="$DATADIR/witness_node_data_dir/config.ini.example"}
 : ${CONF_FILE="$DATADIR/witness_node_data_dir/config.ini"}
@@ -335,7 +332,7 @@ fi
 
 
 BUILD_FULL=0        # Internal variable. Set to 1 by build_full to inform child functions
-CUST_TAG="steem"    # Placeholder for custom tag var CUST_TAG (shared between functions)
+CUST_TAG="HIVE"    # Placeholder for custom tag var CUST_TAG (shared between functions)
 BUILD_VER=""        # Placeholder for BUILD_VER shared between functions
 
 
@@ -400,10 +397,10 @@ export -f msg
 export RED GREEN YELLOW BLUE BOLD NORMAL RESET
 
 # load helpers
-# source "${SIAB_DIR}/scripts/010_helpers.sh"
+# source "${HIAB_DIR}/scripts/010_helpers.sh"
 
-siab_load_lib helpers docker stateshot 
-siab_load_lib rpclib
+hiab_load_lib helpers docker stateshot 
+hiab_load_lib rpclib
 
 # if the config file doesn't exist, try copying the example config
 if [[ ! -f "$CONF_FILE" ]]; then
@@ -414,25 +411,9 @@ if [[ ! -f "$CONF_FILE" ]]; then
         echo " > You may want to adjust this if you're running a witness, e.g. disable p2p-endpoint"
     else
         echo "${YELLOW}WARNING: You don't seem to have a config file and the example config couldn't be found...${RESET}"
-        echo "${YELLOW}${BOLD}You may want to check these files exist, or you won't be able to launch Steem${RESET}"
+        echo "${YELLOW}${BOLD}You may want to check these files exist, or you won't be able to launch HIVE${RESET}"
         echo "Example Config: $EXAMPLE_CONF"
         echo "Main Config: $CONF_FILE"
-    fi
-fi
-
-if [[ ! -f "$MIRA_FILE" ]]; then
-    if [[ -f "$EXAMPLE_MIRA" ]]; then
-        echo "${YELLOW}File database.cfg not found. copying example ${RESET}"
-        cp -vi "$EXAMPLE_MIRA" "$MIRA_FILE" 
-        echo "${GREEN} > Successfully installed example MIRA config.${RESET}"
-        echo " > You may want to adjust this depending on your resources and type of node:"
-        echo " - - > https://github.com/steemit/steem/blob/master/doc/mira.md"
-
-    else
-        echo "${YELLOW}WARNING: You don't seem to have a MIRA config file (data/database.cfg) and the example config couldn't be found...${RESET}"
-        echo "${YELLOW}${BOLD}You may want to check these files exist, or you won't be able to use Steem with MIRA${RESET}"
-        echo "Example Config: $EXAMPLE_MIRA"
-        echo "Main Config: $MIRA_FILE"
     fi
 fi
 
@@ -462,9 +443,9 @@ if (( ${#EXTRA_VOLUMES[@]} )); then
 fi
 
 # load docker hub API
-# source "${SIAB_DIR}/scripts/030_docker.sh"
+# source "${HIAB_DIR}/scripts/030_docker.sh"
 
-# source "${SIAB_DIR}/scripts/040_stateshot.sh"
+# source "${HIAB_DIR}/scripts/040_stateshot.sh"
 
 help() {
     echo "Usage: $0 COMMAND [DATA]"
@@ -472,7 +453,7 @@ help() {
     echo "Commands: 
     start           - starts ${NETWORK_NAME} container
     stop            - stops ${NETWORK_NAME} container
-    kill            - force stop ${NETWORK_NAME} container (in event of steemd hanging indefinitely)
+    kill            - force stop ${NETWORK_NAME} container (in event of HIVEd hanging indefinitely)
     restart         - restarts ${NETWORK_NAME} container
     replay          - starts ${NETWORK_NAME} container (in replay mode)
     memory_replay   - starts ${NETWORK_NAME} container (in replay mode, with --memory-replay - for use with MIRA-enabled images only)
@@ -550,7 +531,7 @@ parse_build_args() {
     if (( $BUILD_FULL == 1 )); then
         CUST_TAG+="-full"
     fi
-    BUILD_ARGS+=('--build-arg' "steemd_version=${BUILD_VER}")
+    BUILD_ARGS+=('--build-arg' "hived_version=${BUILD_VER}")
     shift
     if (( $# >= 2 )); then
         if [[ "$1" == "tag" ]]; then
@@ -559,15 +540,15 @@ parse_build_args() {
             shift; shift;    # Get rid of the two tag arguments. Everything after is now build args
         fi
     fi
-    local has_steem_src='n' has_clear_votes=0 has_skip_txid=0 has_lowmem_node=0 has_enable_mira=0
+    local has_HIVE_src='n' has_clear_votes=0 has_skip_txid=0 has_lowmem_node=0 has_enable_mira=0
 
     if (( $# >= 1 )); then
         msg yellow " >> Additional build arguments specified."
         for a in "$@"; do
             msg yellow " ++ Build argument: ${BOLD}${a}"
             BUILD_ARGS+=('--build-arg' "$a")
-            if grep -q 'STEEM_SOURCE' <<< "$a"; then
-                has_steem_src='y'
+            if grep -q 'HIVE_SOURCE' <<< "$a"; then
+                has_HIVE_src='y'
             fi
             grep -q 'CLEAR_VOTES' <<< "$a" && has_clear_votes=1 || has_clear_votes=0
             grep -q 'SKIP_BY_TX_ID' <<< "$a" && has_skip_txid=1 || has_skip_txid=0
@@ -594,12 +575,12 @@ parse_build_args() {
             BUILD_ARGS+=('--build-arg' 'ENABLE_MIRA=OFF')
         fi
     fi
-    if [[ "$has_steem_src" == "y" ]]; then
-        msg bold yellow " [!!] STEEM_SOURCE has been specified in the build arguments. Using source from build args instead of global"
+    if [[ "$has_HIVE_src" == "y" ]]; then
+        msg bold yellow " [!!] HIVE_SOURCE has been specified in the build arguments. Using source from build args instead of global"
     else
-        msg bold yellow " [!!] Did not find STEEM_SOURCE in build args. Using STEEM_SOURCE from environment:"
-        msg bold yellow " [!!] STEEM_SOURCE = ${STEEM_SOURCE}"
-        BUILD_ARGS+=('--build-arg' "STEEM_SOURCE=${STEEM_SOURCE}")
+        msg bold yellow " [!!] Did not find HIVE_SOURCE in build args. Using HIVE_SOURCE from environment:"
+        msg bold yellow " [!!] HIVE_SOURCE = ${HIVE_SOURCE}"
+        BUILD_ARGS+=('--build-arg' "HIVE_SOURCE=${HIVE_SOURCE}")
     fi
     
     msg blue " ++ CUSTOM BUILD SPECIFIED. Building from branch/tag ${BOLD}${BUILD_VER}"
@@ -608,7 +589,7 @@ parse_build_args() {
 }
 
 build_local() {
-    STEEM_SOURCE="local_src_folder"
+    HIVE_SOURCE="local_src_folder"
     DOCKER_DIR="${DIR}/dkr_local"
 
     if [[ ! -d "${DOCKER_DIR}/src" ]]; then
@@ -617,23 +598,23 @@ build_local() {
     fi
 
     msg green " >>> Local build requested."
-    msg green " >>> Will build Steem using code stored in '${DOCKER_DIR}/src' instead of remote git repo"
+    msg green " >>> Will build HIVE using code stored in '${DOCKER_DIR}/src' instead of remote git repo"
     build "$@"
 }
 
 # Build standard low memory node as a docker image
 # Usage: ./run.sh build [version] [tag tag_name] [build_args]
-# Version is prefixed with v, matching steem releases
+# Version is prefixed with v, matching HIVE releases
 # e.g. build v0.20.6
 #
 # Override destination tag:
-#   ./run.sh build v0.21.0 tag 'steem:latest'
+#   ./run.sh build v0.21.0 tag 'HIVE:latest'
 #
 # Additional build args:
 #   ./run.sh build v0.21.0 ENABLE_MIRA=OFF
 #
 # Or combine both:
-#   ./run.sh build v0.21.0 tag 'steem:mira' ENABLE_MIRA=ON
+#   ./run.sh build v0.21.0 tag 'HIVE:mira' ENABLE_MIRA=ON
 #
 build() {
     fmm="Low Memory Mode (For Seed / Witness nodes)"
@@ -686,7 +667,7 @@ build() {
 
 # Build full memory node (for RPC nodes) as a docker image
 # Usage: ./run.sh build_full [version]
-# Version is prefixed with v, matching steem releases
+# Version is prefixed with v, matching HIVE releases
 # e.g. build_full v0.20.6
 build_full() {
     BUILD_FULL=1
@@ -716,11 +697,11 @@ build_full() {
 # You don't want to use rsync to resume, because your network is very fast
 # Instead, you can continue your download using the uncompressed version over HTTP:
 #
-#   ./run.sh dlblocks http "http://files.privex.io/steem/block_log"
+#   ./run.sh dlblocks http "http://files.privex.io/HIVE/block_log"
 #
 # Or just re-download the whole uncompressed file instead of resuming:
 #
-#   ./run.sh dlblocks http-replace "http://files.privex.io/steem/block_log"
+#   ./run.sh dlblocks http-replace "http://files.privex.io/HIVE/block_log"
 #
 dlblocks() {
     pkg_not_found rsync rsync
@@ -792,7 +773,7 @@ local-file-size() {
 #   # With no arguments, it will default to ${BC_FOLDER}/block_log
 #   fix-blocks-blocklog
 #   # Otherwise, you can specify the path to the local block_log to be repaired
-#   fix-blocks-blocklog "/steem/data/witness_node_data_dir/blockchain/block_log"
+#   fix-blocks-blocklog "/HIVE/data/witness_node_data_dir/blockchain/block_log"
 #
 fix-blocks-blocklog() {
     msg
@@ -1200,7 +1181,7 @@ fix-blocks() {
 #
 #       insert_env "SHM_DIR=${DATADIR}/rocksdb"
 #
-#       insert_env "DATADIR=/steem/data" "/steem/.env"
+#       insert_env "DATADIR=/HIVE/data" "/HIVE/.env"
 #
 insert_env() {
     local env_line="$1" env_file="${DIR}/.env"
@@ -1463,7 +1444,7 @@ _SILENCE_RDB_INTRO=0
 # Disable this by setting "RDB_IGNORE_SHM=1"
 #
 # example: 
-#   ./run.sh dlrocksdb "rsync://files.privex.io/steem/rocksdb/" "/steem/data/rocksdb/"
+#   ./run.sh dlrocksdb "rsync://files.privex.io/HIVE/rocksdb/" "/HIVE/data/rocksdb/"
 #
 dlrocksdb() {
     local url="$ROCKSDB_RSYNC" out_dir="$SHM_DIR" env_file="${DIR}/.env"
@@ -1472,12 +1453,12 @@ dlrocksdb() {
         msg bold green " ############################################################################################ "
         msg bold green " #                                                                                          # "
         msg bold green " #                                                                                          # "
-        msg bold green " #                          Steem-in-a-Box RocksDB Downloader                               # "
+        msg bold green " #                          HIVE-in-a-Box RocksDB Downloader                               # "
         msg bold green " #                                                                                          # "
-        msg bold green " #                   (C) 2020 Someguy123 - https://steempeak.com/@someguy123                # "
+        msg bold green " #                   (C) 2020 Someguy123 - https://HIVEpeak.com/@someguy123                # "
         msg bold green " #                                                                                          # "
         msg bold green " #                                                                                          # "
-        msg bold green " #    SRC: github.com/Someguy123/steem-docker                                               # "
+        msg bold green " #    SRC: github.com/Someguy123/HIVE-docker                                               # "
         msg bold green " #                                                                                          # "
         msg bold green " #    Fast and easy download + installation of RocksDB files from Privex Inc.               # "
         msg bold green " #                                                                                          # "
@@ -1511,7 +1492,7 @@ dlrocksdb() {
         if (( RDB_IGNORE_SHM == 0 )) && yesno "${BOLD}${YELLOW}Do you want us to store RocksDB inside of '${DATADIR}/rocksdb/' instead?${RESET} (Y/n) > " defyes; then
             out_dir="${DATADIR}/rocksdb/"
             msg green " >> We'll download RocksDB into '$out_dir' this time."
-            msg green " >> For the Steem daemon to correctly use the RocksDB files, you'll need to correct SHM_DIR inside of your '.env' file."
+            msg green " >> For the HIVE daemon to correctly use the RocksDB files, you'll need to correct SHM_DIR inside of your '.env' file."
             if yesno "${BOLD}${YELLOW}Do you want us to automatically create/update your .env file with 'SHM_DIR=$out_dir' ? ${RESET} (Y/n) > " defyes; then
                 insert_env "SHM_DIR=${out_dir}"
                 if (( $? != 0 )); then
@@ -1538,7 +1519,7 @@ dlrocksdb() {
 #
 # usage:
 #
-#     $ s=$(remote-file-size "http://files.privex.io/steem/block_log")
+#     $ s=$(remote-file-size "http://files.privex.io/HIVE/block_log")
 #     $ echo $s
 #     270743893301
 #
@@ -1698,19 +1679,19 @@ install_docker() {
 }
 
 # Usage: ./run.sh install [tag]
-# Downloads the Steem low memory node image from someguy123's official builds, or a custom tag if supplied
+# Downloads the HIVE low memory node image from someguy123's official builds, or a custom tag if supplied
 #
 #   tag - optionally specify a docker tag to install from. can be third party
 #         format: user/repo:version    or   user/repo   (uses the 'latest' tag)
 #
 # If no tag specified, it will download the pre-set $DK_TAG in run.sh or .env
-# Default tag is normally someguy123/steem:latest (official builds by the creator of steem-docker).
+# Default tag is normally someguy123/HIVE:latest (official builds by the creator of HIVE-docker).
 #
 install() {
     if (( $# == 1 )); then
         DK_TAG=$1
         # If neither '/' nor ':' are present in the tag, then for convenience, assume that the user wants
-        # someguy123/steem with this specific tag.
+        # someguy123/HIVE with this specific tag.
         if grep -qv ':' <<< "$1"; then
             if grep -qv '/' <<< "$1"; then
                 msg bold red "WARNING: Neither / nor : were present in your tag '$1'"
@@ -1730,14 +1711,14 @@ install() {
 }
 
 # Usage: ./run.sh install_full
-# Downloads the Steem full node image from the pre-set $DK_TAG_FULL in run.sh or .env
-# Default tag is normally someguy123/steem:latest-full (official builds by the creator of steem-docker).
+# Downloads the HIVE full node image from the pre-set $DK_TAG_FULL in run.sh or .env
+# Default tag is normally someguy123/HIVE:latest-full (official builds by the creator of HIVE-docker).
 #
 install_full() {
     msg yellow " -> Loading image from ${DK_TAG_FULL}"
     docker pull "$DK_TAG_FULL" 
-    msg green " -> Tagging as steem"
-    docker tag "$DK_TAG_FULL" steem
+    msg green " -> Tagging as HIVE"
+    docker tag "$DK_TAG_FULL" HIVE
     msg bold green " -> Installation completed. You may now configure or run the server"
 }
 
@@ -1820,20 +1801,20 @@ remove_seed_exists() {
 }
 
 
-# docker_run_node [steemd extra arguments]
-# Create and start a container to run DKR_RUN_BIN (usually `steemd`), appending any arguments from this
-# function to the steemd command line arguments.
+# docker_run_node [HIVEd extra arguments]
+# Create and start a container to run DKR_RUN_BIN (usually `HIVEd`), appending any arguments from this
+# function to the HIVEd command line arguments.
 #
 # When ran without arguments, should produce a command which looks like:
-#   docker run -p 0.0.0.0:2001:2001 -v /hive/data:/steem -d --name $DOCKER_NAME
-#       -t $DOCKER_IMAGE steemd --data-dir=/steem/witness_node_data_dir
+#   docker run -p 0.0.0.0:2001:2001 -v /hive/data:/HIVE -d --name $DOCKER_NAME
+#       -t $DOCKER_IMAGE HIVEd --data-dir=/HIVE/witness_node_data_dir
 docker_run_node() {
     : "${DKR_RUN_ADD_DATA_DIR=1}"
     local stm_run_args=()
 
     (( DKR_RUN_ADD_DATA_DIR )) && stm_run_args+=("--data-dir=${DKR_DATA_MOUNT}/witness_node_data_dir")
 
-    stm_run_args+=("${STEEM_RUN_ARGS[@]}" "$@")
+    stm_run_args+=("${HIVE_RUN_ARGS[@]}" "$@")
     _docker_run "${DKR_RUN_BIN}" "${stm_run_args[@]}"
 }
 
@@ -1873,7 +1854,7 @@ _docker_int_autorm() {
 # based on env vars such as `DKR_VOLUMES`, `DPORTS`, and others.
 #
 # Example:
-#   _docker_run steemd --data-dir=/steem/witness_node_data_dir
+#   _docker_run HIVEd --data-dir=/HIVE/witness_node_data_dir
 #   RUN_DETACHED=0 DKR_USE_NAME=0 DKR_EXPOSE_PORTS=0 _docker_run cli_wallet -s "wss://hived.privex.io"
 #
 _docker_run() {
@@ -1915,7 +1896,7 @@ _docker_run() {
 }
 
 # Usage: ./run.sh start
-# Creates and/or starts the Steem docker container
+# Creates and/or starts the HIVE docker container
 start() {
     remove_seed_exists 1
     msg bold green " -> Starting container '${DOCKER_NAME}'..."
@@ -1969,8 +1950,8 @@ dump_snap() {
 }
 
 # Usage: ./run.sh replay
-# Replays the blockchain for the Steem docker container
-# If steem is already running, it will ask you if you still want to replay
+# Replays the blockchain for the HIVE docker container
+# If HIVE is already running, it will ask you if you still want to replay
 # so that it can stop and remove the old container
 #
 replay() {
@@ -1982,7 +1963,7 @@ replay() {
     msg bold green " -> Started."
 }
 
-# For MIRA, you can replay with --memory-replay to tell steemd to store as much chainstate as it can in memory,
+# For MIRA, you can replay with --memory-replay to tell HIVEd to store as much chainstate as it can in memory,
 # instead of constantly reading/writing it to the disk RocksDB files.
 # WARNING: Consumes a ridiculous amount of memory compared to standard MIRA replay and non-MIRA replay
 # (somewhere around 120GB for low memory mode with basic plugins...)
@@ -1996,7 +1977,7 @@ memory_replay() {
 }
 
 # Usage: ./run.sh shm_size size
-# Resizes the ramdisk used for storing Steem's shared_memory at /dev/shm
+# Resizes the ramdisk used for storing HIVE's shared_memory at /dev/shm
 # Size should be specified with G (gigabytes), e.g. ./run.sh shm_size 64G
 #
 shm_size() {
@@ -2013,7 +1994,7 @@ shm_size() {
 }
 
 # Usage: ./run.sh stop
-# Stops the Steem container, and removes the container to avoid any leftover
+# Stops the HIVE container, and removes the container to avoid any leftover
 # configuration, e.g. replay command line options
 #
 stop() {
@@ -2045,13 +2026,13 @@ enter() {
 #
 shell() {
     _docker_int_autorm bash
-    # docker run ${DPORTS[@]} -v "$SHM_DIR":/shm -v "$DATADIR":/steem --rm -it "$DOCKER_IMAGE" bash
+    # docker run ${DPORTS[@]} -v "$SHM_DIR":/shm -v "$DATADIR":/HIVE --rm -it "$DOCKER_IMAGE" bash
 }
 
 
 # Usage: ./run.sh wallet
-# Opens cli_wallet inside of the running Steem container and
-# connects to the local steemd over websockets on port 8090
+# Opens cli_wallet inside of the running HIVE container and
+# connects to the local HIVEd over websockets on port 8090
 #
 wallet() {
     docker exec -it $DOCKER_NAME cli_wallet -s ws://127.0.0.1:8090
@@ -2061,10 +2042,10 @@ wallet() {
 # Connects to a remote websocket server for wallet connection. This is completely safe
 # as your wallet/private keys are never sent to the remote server.
 #
-# By default, it will connect to wss://steemd.privex.io:443 (ws = normal websockets, wss = secure HTTPS websockets)
-# See this link for a list of WSS nodes: https://www.steem.center/index.php?title=Public_Websocket_Servers
+# By default, it will connect to wss://HIVEd.privex.io:443 (ws = normal websockets, wss = secure HTTPS websockets)
+# See this link for a list of WSS nodes: https://www.HIVE.center/index.php?title=Public_Websocket_Servers
 # 
-#    wss_server - a custom websocket server to connect to, e.g. ./run.sh remote_wallet wss://rpc.steemviz.com
+#    wss_server - a custom websocket server to connect to, e.g. ./run.sh remote_wallet wss://rpc.HIVEviz.com
 #
 remote_wallet() {
     if (( $# >= 1 )); then
@@ -2072,12 +2053,12 @@ remote_wallet() {
     fi
     # DKR_RUN_ARGS="--rm -i" RUN_DETACHED=0 DKR_RUN_ADD_DATA_DIR=0 
     # DKR_RUN_BIN="cli_wallet"
-    # docker run -v "$DATADIR":/steem --rm -it "$DOCKER_IMAGE" cli_wallet -s "$REMOTE_WS"
+    # docker run -v "$DATADIR":/HIVE --rm -it "$DOCKER_IMAGE" cli_wallet -s "$REMOTE_WS"
     docker_run_wallet "$REMOTE_WS"
 }
 
 # Usage: ./run.sh logs
-# Shows the last 30 log lines of the running steem container, and follows the log until you press ctrl-c
+# Shows the last 30 log lines of the running HIVE container, and follows the log until you press ctrl-c
 #
 logs() {
     msg blue "DOCKER LOGS: (press ctrl-c to exit) "
@@ -2089,7 +2070,7 @@ logs() {
 # Usage: ./run.sh pclogs
 # (warning: may require root to work properly in some cases)
 # Used to watch % replayed during blockchain replaying.
-# Scans and follows a large portion of your steem logs then filters to only include the replay percentage
+# Scans and follows a large portion of your HIVE logs then filters to only include the replay percentage
 #   example:    2018-12-08T23:47:16    22.2312%   6300000 of 28338603   (60052M free)
 #
 pclogs() {
@@ -2172,7 +2153,7 @@ _clean-json-logline() {
     L=$(sed -e "s/\r//" <<< "$L")
     # now remove the decimal time to make the logs cleaner
     L=$(sed -e 's/\..*Z//' <<< "$L")
-    # remove the steem ms time because most people don't care
+    # remove the HIVE ms time because most people don't care
     L=$(sed -e 's/[0-9]\+ms //' <<< "$L")
     # and finally, strip off any duplicate new line characters
     L=$(tr -s "\n" <<< "$L")
@@ -2203,8 +2184,8 @@ _clean-json-loglines() {
 
 # Usage: ./run.sh tslogs
 # (warning: may require root to work properly in some cases)
-# Shows the Steem logs, but with UTC timestamps extracted from the docker logs.
-# Scans and follows a large portion of your steem logs, filters out useless data, and appends a 
+# Shows the HIVE logs, but with UTC timestamps extracted from the docker logs.
+# Scans and follows a large portion of your HIVE logs, filters out useless data, and appends a 
 # human readable timestamp on the left. Time is normally in UTC, not your local. Example:
 #
 #   2018-12-09T01:04:59 p2p_plugin.cpp:212            handle_block         ] Got 21 transactions 
@@ -2298,7 +2279,7 @@ show-git-updates() {
 }
 
 # Usage: ./run.sh ver
-# Displays information about your Steem-in-a-box version, including the docker container
+# Displays information about your HIVE-in-a-box version, including the docker container
 # as well as the scripts such as run.sh. Checks for updates using git and DockerHub API.
 #
 ver() {
@@ -2356,7 +2337,7 @@ ver() {
     ####
     # Show the currently installed image information
     ####
-    echo "${BLUE}Hive/Steem image installed:${RESET}"
+    echo "${BLUE}Hive/HIVE image installed:${RESET}"
     # Pretty printed docker image ID + creation date
     dkimg_output=$(docker images -f "reference=${DOCKER_IMAGE}:latest" --format "Tag: {{.Repository}}, Image ID: {{.ID}}, Created At: {{.CreatedSince}}")
     # Just the image ID
@@ -2377,7 +2358,7 @@ ver() {
                 echo "    ${YELLOW}An update is available for your ${NETWORK_NAME} server docker image"
                 echo "    Your image ID: $dkimg_id    Image ID on Docker Hub: ${remote_docker_id}"
                 echo "    NOTE: If you have built manually with './run.sh build', your image will not match docker hub."
-                echo "    To update, use ./run.sh install - a replay may or may not be required (ask in #witness on steem.chat)${RESET}"
+                echo "    To update, use ./run.sh install - a replay may or may not be required (ask in #witness on HIVE.chat)${RESET}"
             else
                 echo "${GREEN}Your installed docker image ($dkimg_id) matches Docker Hub ($remote_docker_id)"
                 echo "You're running the latest version of ${NETWORK_NAME} from @someguy123's builds${RESET}"
@@ -2392,8 +2373,8 @@ ver() {
 
     msg green "Build information for currently installed ${NETWORK_NAME} image '${DOCKER_IMAGE}':"
 
-    # docker run --rm -it "${DOCKER_IMAGE}" cat /steem_build.txt
-    _docker_int_autorm cat /steem_build.txt
+    # docker run --rm -it "${DOCKER_IMAGE}" cat /HIVE_build.txt
+    _docker_int_autorm cat /HIVE_build.txt
     echo "${BLUE}${NETWORK_NAME} version currently running:${RESET}"
     # Verify that the container exists, even if it's stopped
     if seed_exists; then
@@ -2452,11 +2433,11 @@ status() {
 rpc-global-props() {
     if (( $# < 1 )); then
         local ct_ip=$(get_container_ip "$DOCKER_NAME")
-        local rpc_url="http://${ct_ip}:${STEEM_RPC_PORT}"
+        local rpc_url="http://${ct_ip}:${HIVE_RPC_PORT}"
     else
         local rpc_url="$1"
     fi
-    # local rpc_url="https://steemd.privex.io/"
+    # local rpc_url="https://HIVEd.privex.io/"
 
     curl -fsSL --data '{"jsonrpc": "2.0", "method": "condenser_api.get_dynamic_global_properties", "params": [], "id": 1}' "$rpc_url"
 }
@@ -2467,15 +2448,15 @@ _LN="======================================================================\n"
 
 MONITOR_INTERVAL=$((MONITOR_INTERVAL))
 
-siab-monitor() {
+HIAB-monitor() {
     local props head_block block_time seconds_behind time_behind
     local blocks_synced=0 started_at="$(rfc_datetime)" starting_block=0
     local time_since_start mins_since_start bps=0 bpm=0
     local remote_props remote_head_block blocks_behind mins_remaining
     error_control 0
     msg
-    msg nots bold green "--- Steem-in-a-box Sync Monitor --- \n"
-    msg nots bold green "Monitoring your local steemd instance\n"
+    msg nots bold green "--- HIVE-in-a-box Sync Monitor --- \n"
+    msg nots bold green "Monitoring your local HIVEd instance\n"
     msg nots bold green "Block data will update every 10 seconds, showing the block number that your node is synced up to"
     msg nots bold green "the date/time that block was produced, and how far behind in days/hours/minutes that block is.\n"
     msg nots bold green "After the first check, we'll also output how many blocks have been synced so far, as well as"
@@ -2674,7 +2655,7 @@ sb_clean() {
 publish() {
     if (( $# < 2 )); then
         msg green "Usage: $0 publish [mira|nomira] [version] (extratag def: latest)"
-        msg yellow "Environment vars:\n\tMAIN_TAG - Override the primary tag (default: someguy123/steem:\$V)\n"
+        msg yellow "Environment vars:\n\tMAIN_TAG - Override the primary tag (default: someguy123/HIVE:\$V)\n"
         return 1
     fi
     MKMIRA="$1"
@@ -2718,7 +2699,7 @@ health() {
     MSG_TS_DEFAULT=0
     set +euE
     set +o pipefail
-    local dk_ver="$(_docker_int_autorm cat /steem_build.txt | sed -rn 's#Git version/commit\:[ \t]+([a-zA-Z0-9._-]+)#\1#p')"
+    local dk_ver="$(_docker_int_autorm cat /HIVE_build.txt | sed -rn 's#Git version/commit\:[ \t]+([a-zA-Z0-9._-]+)#\1#p')"
     local dk_logpath="$(_dkr-get-logfile)"
     local dk_lastline dk_runver
     dk_lastline=$(tail -n 100 "$dk_logpath" | _clean-json-loglines | grep -E 'Got [0-9]+ transactions on' | tail -n 1)
@@ -2838,7 +2819,7 @@ case $1 in
         fix-blocks "${@:2}"
         ;;
     monitor)
-        siab-monitor "${@:2}"
+        HIAB-monitor "${@:2}"
         ;;
     stateshot)
         install-stateshot "${@:2}"
