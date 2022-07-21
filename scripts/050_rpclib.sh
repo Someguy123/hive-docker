@@ -299,10 +299,8 @@ human-seconds() { human_seconds "$@"; };
 ######################################################
 
 
-# The default RPC node to use for rpc-rq
-# hived.privex.io is a load balancer operated
-# by @privex (Privex Inc.)
-: ${DEFAULT_STM_RPC="https://hived.privex.io"}
+# The default RPC node to use for rpc-rq, operated by @deathwing
+: ${DEFAULT_STM_RPC="https://api.deathwing.me"}
 export DEFAULT_STM_RPC
 export LAST_STM_NODE
 # [ -z ${LAST_STM_NODE+x} ] && export LAST_STM_NODE="$DEFAULT_STM_RPC"
@@ -394,13 +392,13 @@ rpc-rq() {
  $ rpc-rq get_dynamic_global_properties
  Single arg: host=default, method=\$1, params=[]
 
- $ rpc-rq https://hived.privex.io get_dynamic_global_properties
+ $ rpc-rq https://api.deathwing.me get_dynamic_global_properties
  $ rpc-rq get_dynamic_global_properties '[]'
  Two args: Detects if first arg is host.
    If host: host=\$1, method=\$2, params=[]
    If not:  host=default, method=\$1, params=\$2
  
- $ rpc-rq https://hived.privex.io get_dynamic_global_properties '[]'
+ $ rpc-rq https://api.deathwing.me get_dynamic_global_properties '[]'
  Three args: host=\$1 method=\$2 params=\$3
 "
         return 1
@@ -496,7 +494,7 @@ rpc-get-block() {
         msgerr bold magenta "Examples\n"
         msgerr magenta "    $ rpc-get-block https://steemd.privex.io"
         msgerr magenta "    43282919"
-        msgerr magenta "    $ rpc-get-block https://hived.privex.io"
+        msgerr magenta "    $ rpc-get-block https://api.deathwing.me"
         msgerr magenta "    43309827\n"
 
         msgerr cyan "Usage: $0 (host) [block_num]\n"
@@ -622,7 +620,7 @@ _jq-call() {
 
 # _rpc-cmd-wrapper rpc_method rpc_params jq_query [rpc-rq params...]
 # example:
-#   _rpc-cmd-wrapper condenser_api.get_version '[]' '.result.blockchain_version' https://hived.privex.io
+#   _rpc-cmd-wrapper condenser_api.get_version '[]' '.result.blockchain_version' https://api.deathwing.me
 _rpc-cmd-wrapper() {
     local rpcverbose=0
     (( $# > 0 )) && [[ "$1" == "-v" || "$1" == "--verbose" ]] && rpcverbose=1 && RPC_VERBOSE=1 && shift

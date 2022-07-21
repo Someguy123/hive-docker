@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 #####################################################################################################
-# HIVE node manager
+# Hive node manager
 # Released under GNU AGPL by Someguy123
 #
-# Github: https://github.com/Someguy123/HIVE-docker
+# Github: https://github.com/Someguy123/hive-docker
 #
-# **HIVE-in-a-box** is a toolkit for using the HIVE Docker images[1] published by @someguy123.
+# **hive-in-a-box** is a toolkit for using the hive Docker images[1] published by @someguy123.
 # It's purpose is to simplify the deployment of `HIVEd` nodes.
 #
 # For more information, see README.md - or run `./run.sh help`
 #
-# [1] https://hub.docker.com/r/someguy123/HIVE/tags/
+# [1] https://hub.docker.com/r/someguy123/hive/tags/
 #
 #####################################################################################################
 
@@ -208,48 +208,21 @@ if [[ "$NETWORK" == "hive" ]]; then
 
     : ${DK_TAG_BASE="someguy123/hive"}
 
-    : ${REMOTE_WS="wss://hived.privex.io"}
-    : ${REMOTE_RPC="https://hived.privex.io"}
+    : ${REMOTE_WS="wss://api.deathwing.me"}
+    : ${REMOTE_RPC="https://api.deathwing.me"}
 
     : ${STOP_TIME=600}          # Amount of time in seconds to allow the docker container to stop before killing it.
     : ${HIVE_RPC_PORT="8091"}  # Local HIVEd RPC port, used by commands such as 'monitor' which need to query your HIVEd's HTTP RPC
 
-    : ${DKR_DATA_MOUNT="/HIVE"}    # Mount $DATADIR onto this folder within the container
+    : ${DKR_DATA_MOUNT="/hive"}    # Mount $DATADIR onto this folder within the container
     : ${DKR_SHM_MOUNT="/shm"}       # Mount $SHM_DIR onto this folder within the container
     : ${DKR_RUN_BIN="hived"}        # Run this executable within the container
-elif [[ "$NETWORK" == "blurt" ]]; then
-    : ${DOCKER_IMAGE="blurt"}
-    : ${HIVE_SOURCE="https://gitlab.com/blurt/blurt.git"}
-
-    : ${NETWORK_NAME="blurt"}
-    : ${SELF_NAME="Blurt-in-a-box"}
-    
-    : ${BC_HTTP="http://${DL_SERVER}/blurt/block_log.lz4"}        # HTTP or HTTPS url to grab the blockchain from. Set compression in BC_HTTP_CMP
-    : ${BC_HTTP_RAW="http://${DL_SERVER}/blurt/block_log"}        # Uncompressed block_log over HTTP
-    : ${BC_HTTP_CMP="lz4"}                                           # Compression type, can be "xz", "lz4", or "no" (for no compression)
-    : ${RSYNC_BASE="rsync://${DL_SERVER_RSYNC}/blurt"}
-    : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
-    
-    #: ${ROCKSDB_RSYNC="${RSYNC_BASE}/rocksdb/"}                     # Rsync URL for MIRA RocksDB files
-    #: ${SNAPSHOT_RSYNC="${RSYNC_BASE}/privexsnap/"}                 # Rsync URL for Eclipse Snapshot
-
-    : ${DK_TAG_BASE="someguy123/blurt"}
-
-    : ${REMOTE_WS="wss://blurtd.privex.io"}
-    : ${REMOTE_RPC="https://blurtd.privex.io"}
-
-    : ${STOP_TIME=600}          # Amount of time in seconds to allow the docker container to stop before killing it.
-    : ${HIVE_RPC_PORT="8091"}  # Local HIVEd RPC port, used by commands such as 'monitor' which need to query your HIVEd's HTTP RPC
-
-    : ${DKR_DATA_MOUNT="/HIVE"}    # Mount $DATADIR onto this folder within the container
-    : ${DKR_SHM_MOUNT="/shm"}       # Mount $SHM_DIR onto this folder within the container
-    : ${DKR_RUN_BIN="blurtd"}       # Run this executable within the container
 fi
 
 
-: ${DKR_DATA_MOUNT="/HIVE"}    # Mount $DATADIR onto this folder within the container
+: ${DKR_DATA_MOUNT="/hive"}    # Mount $DATADIR onto this folder within the container
 : ${DKR_SHM_MOUNT="/shm"}       # Mount $SHM_DIR onto this folder within the container
-: ${DKR_RUN_BIN="HIVEd"}       # Run this executable within the container
+: ${DKR_RUN_BIN="hived"}       # Run this executable within the container
 
 # if (( ${#HIVE_RUN_ARGS[@]} == 0 )); then
 #     HIVE_RUN_ARGS+=("--data-dir=${DKR_DATA_MOUNT}/witness_node_data_dir")
@@ -258,27 +231,27 @@ fi
 (( ${#HIVE_RUN_ARGS_EXTRA[@]} > 0 )) && HIVE_RUN_ARGS+=("${HIVE_RUN_ARGS_EXTRA[@]}")
 
 # the tag to use when running/replaying HIVEd
-: ${DOCKER_IMAGE="HIVE"}
+: ${DOCKER_IMAGE="hive"}
 
-: ${NETWORK_NAME="HIVE"}
-: ${SELF_NAME="HIVE-in-a-box"}
+: ${NETWORK_NAME="hive"}
+: ${SELF_NAME="hive-in-a-box"}
 
 # HTTP or HTTPS url to grab the blockchain from. Set compression in BC_HTTP_CMP
-: ${BC_HTTP="http://${DL_SERVER}/HIVE/block_log.lz4"}
+: ${BC_HTTP="http://${DL_SERVER}/hive/block_log.lz4"}
 
 # HTTP or HTTPS url to grab shared_memory.bin from. Set compression in BC_HTTP_CMP
-: ${SHM_HTTP="http://${DL_SERVER}/HIVE/shared_memory.bin.lz4"}
+: ${SHM_HTTP="http://${DL_SERVER}/hive/shared_memory.bin.lz4"}
 
 # Uncompressed block_log over HTTP, used for getting size for truncation, and
 # potentially resuming downloads
-: ${BC_HTTP_RAW="http://${DL_SERVER}/HIVE/block_log"}
+: ${BC_HTTP_RAW="http://${DL_SERVER}/hive/block_log"}
 
 # Compression type, can be "xz", "lz4", or "no" (for no compression)
 # Uses on-the-fly de-compression while downloading, to conserve disk space
 # and save time by not having to decompress after the download is finished
 : ${BC_HTTP_CMP="lz4"}
 
-: ${RSYNC_BASE="rsync://${DL_SERVER_RSYNC}/HIVE"}
+: ${RSYNC_BASE="rsync://${DL_SERVER_RSYNC}/hive"}
 # Anonymous rsync daemon URL to the raw block_log, for repairing/resuming
 # a damaged/incomplete block_log. Set to "no" to disable rsync when resuming.
 : ${BC_RSYNC="${RSYNC_BASE}/block_log"}                         # Anonymous rsync daemon URL to the raw block_log
@@ -290,20 +263,20 @@ fi
 : ${SNAPSHOT_RSYNC="${RSYNC_BASE}/${SNAPSHOT_NAME}/"}           # Rsync URL for Eclipse Snapshot
 : ${SNAPSHOT_OUTDIR="${DATADIR}/witness_node_data_dir/snapshot/${SNAPSHOT_NAME}/"}
 
-: ${DK_TAG_BASE="someguy123/HIVE"}
+: ${DK_TAG_BASE="someguy123/hive"}
 : ${DK_TAG="${DK_TAG_BASE}:latest"}
 : ${DK_TAG_FULL="${DK_TAG_BASE}:latest-full"}
 : ${SHM_DIR="/dev/shm"}
-: ${REMOTE_WS="wss://HIVEd.privex.io"}
-: ${REMOTE_RPC="https://HIVEd.privex.io"}
+: ${REMOTE_WS="wss://api.deathwing.me"}
+: ${REMOTE_RPC="https://api.deathwing.me"}
 # Amount of time in seconds to allow the docker container to stop before killing it.
 # Default: 600 seconds (10 minutes)
 : ${STOP_TIME=600}
 
-# Git repository to use when building HIVE - containing HIVEd code
-: ${HIVE_SOURCE="https://github.com/HIVEit/HIVE.git"}
+# Git repository to use when building hive - containing hived code
+: ${HIVE_SOURCE="https://github.com/openhive-network/hive.git"}
 
-# Local HIVEd RPC port, used by commands such as 'monitor' which need to query your HIVEd's HTTP RPC
+# Local HIVEd RPC port, used by commands such as 'monitor' which need to query your hived's HTTP RPC
 : ${HIVE_RPC_PORT="8091"}
 
 # Comma separated list of ports to expose to the internet.
@@ -332,7 +305,7 @@ fi
 
 
 BUILD_FULL=0        # Internal variable. Set to 1 by build_full to inform child functions
-CUST_TAG="HIVE"    # Placeholder for custom tag var CUST_TAG (shared between functions)
+CUST_TAG="hive"    # Placeholder for custom tag var CUST_TAG (shared between functions)
 BUILD_VER=""        # Placeholder for BUILD_VER shared between functions
 
 
@@ -405,13 +378,13 @@ hiab_load_lib rpclib
 # if the config file doesn't exist, try copying the example config
 if [[ ! -f "$CONF_FILE" ]]; then
     if [[ -f "$EXAMPLE_CONF" ]]; then
-        echo "${YELLOW}File config.ini not found. copying example (seed)${RESET}"
+        echo "${YELLOW}File config.ini not found. copying example (consensus)${RESET}"
         cp -vi "$EXAMPLE_CONF" "$CONF_FILE" 
-        echo "${GREEN} > Successfully installed example config for seed node.${RESET}"
+        echo "${GREEN} > Successfully installed example config for a consensus node.${RESET}"
         echo " > You may want to adjust this if you're running a witness, e.g. disable p2p-endpoint"
     else
         echo "${YELLOW}WARNING: You don't seem to have a config file and the example config couldn't be found...${RESET}"
-        echo "${YELLOW}${BOLD}You may want to check these files exist, or you won't be able to launch HIVE${RESET}"
+        echo "${YELLOW}${BOLD}You may want to check these files exist, or you won't be able to launch Hive${RESET}"
         echo "Example Config: $EXAMPLE_CONF"
         echo "Main Config: $CONF_FILE"
     fi
@@ -598,23 +571,23 @@ build_local() {
     fi
 
     msg green " >>> Local build requested."
-    msg green " >>> Will build HIVE using code stored in '${DOCKER_DIR}/src' instead of remote git repo"
+    msg green " >>> Will build Hive using code stored in '${DOCKER_DIR}/src' instead of remote git repo"
     build "$@"
 }
 
 # Build standard low memory node as a docker image
 # Usage: ./run.sh build [version] [tag tag_name] [build_args]
-# Version is prefixed with v, matching HIVE releases
+# Version is prefixed with v, matching Hive releases
 # e.g. build v0.20.6
 #
 # Override destination tag:
-#   ./run.sh build v0.21.0 tag 'HIVE:latest'
+#   ./run.sh build v0.21.0 tag 'Hive:latest'
 #
 # Additional build args:
 #   ./run.sh build v0.21.0 ENABLE_MIRA=OFF
 #
 # Or combine both:
-#   ./run.sh build v0.21.0 tag 'HIVE:mira' ENABLE_MIRA=ON
+#   ./run.sh build v0.21.0 tag 'Hive:mira' ENABLE_MIRA=ON
 #
 build() {
     fmm="Low Memory Mode (For Seed / Witness nodes)"
@@ -667,7 +640,7 @@ build() {
 
 # Build full memory node (for RPC nodes) as a docker image
 # Usage: ./run.sh build_full [version]
-# Version is prefixed with v, matching HIVE releases
+# Version is prefixed with v, matching Hive releases
 # e.g. build_full v0.20.6
 build_full() {
     BUILD_FULL=1
@@ -1453,16 +1426,16 @@ dlrocksdb() {
         msg bold green " ############################################################################################ "
         msg bold green " #                                                                                          # "
         msg bold green " #                                                                                          # "
-        msg bold green " #                          HIVE-in-a-Box RocksDB Downloader                               # "
+        msg bold green " #                          Hive-in-a-Box RocksDB Downloader                               # "
         msg bold green " #                                                                                          # "
-        msg bold green " #                   (C) 2020 Someguy123 - https://HIVEpeak.com/@someguy123                # "
+        msg bold green " #                   (C) 2020 Someguy123 - https://peakd.com/@someguy123                # "
         msg bold green " #                                                                                          # "
         msg bold green " #                                                                                          # "
-        msg bold green " #    SRC: github.com/Someguy123/HIVE-docker                                               # "
+        msg bold green " #    SRC: github.com/Someguy123/hive-docker                                               # "
         msg bold green " #                                                                                          # "
         msg bold green " #    Fast and easy download + installation of RocksDB files from Privex Inc.               # "
         msg bold green " #                                                                                          # "
-        msg bold green " #    Do you enjoy our convenient block_log and MIRA RocksDB files?                         # "
+        msg bold green " #                                                                                          # "
         msg bold green " #    Support our community services by buying a server from https://www.privex.io/ :)      # "
         msg bold green " #                                                                                          # "
         msg bold green " #                                                                                          # "
@@ -1492,7 +1465,7 @@ dlrocksdb() {
         if (( RDB_IGNORE_SHM == 0 )) && yesno "${BOLD}${YELLOW}Do you want us to store RocksDB inside of '${DATADIR}/rocksdb/' instead?${RESET} (Y/n) > " defyes; then
             out_dir="${DATADIR}/rocksdb/"
             msg green " >> We'll download RocksDB into '$out_dir' this time."
-            msg green " >> For the HIVE daemon to correctly use the RocksDB files, you'll need to correct SHM_DIR inside of your '.env' file."
+            msg green " >> For the Hive daemon to correctly use the RocksDB files, you'll need to correct SHM_DIR inside of your '.env' file."
             if yesno "${BOLD}${YELLOW}Do you want us to automatically create/update your .env file with 'SHM_DIR=$out_dir' ? ${RESET} (Y/n) > " defyes; then
                 insert_env "SHM_DIR=${out_dir}"
                 if (( $? != 0 )); then
@@ -1717,8 +1690,8 @@ install() {
 install_full() {
     msg yellow " -> Loading image from ${DK_TAG_FULL}"
     docker pull "$DK_TAG_FULL" 
-    msg green " -> Tagging as HIVE"
-    docker tag "$DK_TAG_FULL" HIVE
+    msg green " -> Tagging as hive"
+    docker tag "$DK_TAG_FULL" hive
     msg bold green " -> Installation completed. You may now configure or run the server"
 }
 
@@ -1855,7 +1828,7 @@ _docker_int_autorm() {
 #
 # Example:
 #   _docker_run HIVEd --data-dir=/HIVE/witness_node_data_dir
-#   RUN_DETACHED=0 DKR_USE_NAME=0 DKR_EXPOSE_PORTS=0 _docker_run cli_wallet -s "wss://hived.privex.io"
+#   RUN_DETACHED=0 DKR_USE_NAME=0 DKR_EXPOSE_PORTS=0 _docker_run cli_wallet -s "wss://api.deathwing.me"
 #
 _docker_run() {
     local x_run_args=("$@")
@@ -2042,7 +2015,7 @@ wallet() {
 # Connects to a remote websocket server for wallet connection. This is completely safe
 # as your wallet/private keys are never sent to the remote server.
 #
-# By default, it will connect to wss://HIVEd.privex.io:443 (ws = normal websockets, wss = secure HTTPS websockets)
+# By default, it will connect to wss://api.deathwing.me:443 (ws = normal websockets, wss = secure HTTPS websockets)
 # See this link for a list of WSS nodes: https://www.HIVE.center/index.php?title=Public_Websocket_Servers
 # 
 #    wss_server - a custom websocket server to connect to, e.g. ./run.sh remote_wallet wss://rpc.HIVEviz.com
@@ -2337,7 +2310,7 @@ ver() {
     ####
     # Show the currently installed image information
     ####
-    echo "${BLUE}Hive/HIVE image installed:${RESET}"
+    echo "${BLUE}Hive/hive image installed:${RESET}"
     # Pretty printed docker image ID + creation date
     dkimg_output=$(docker images -f "reference=${DOCKER_IMAGE}:latest" --format "Tag: {{.Repository}}, Image ID: {{.ID}}, Created At: {{.CreatedSince}}")
     # Just the image ID
@@ -2437,7 +2410,7 @@ rpc-global-props() {
     else
         local rpc_url="$1"
     fi
-    # local rpc_url="https://HIVEd.privex.io/"
+    # local rpc_url="https://api.deathwing.me/"
 
     curl -fsSL --data '{"jsonrpc": "2.0", "method": "condenser_api.get_dynamic_global_properties", "params": [], "id": 1}' "$rpc_url"
 }
@@ -2455,7 +2428,7 @@ HIAB-monitor() {
     local remote_props remote_head_block blocks_behind mins_remaining
     error_control 0
     msg
-    msg nots bold green "--- HIVE-in-a-box Sync Monitor --- \n"
+    msg nots bold green "--- Hive-in-a-box Sync Monitor --- \n"
     msg nots bold green "Monitoring your local HIVEd instance\n"
     msg nots bold green "Block data will update every 10 seconds, showing the block number that your node is synced up to"
     msg nots bold green "the date/time that block was produced, and how far behind in days/hours/minutes that block is.\n"
@@ -2655,7 +2628,7 @@ sb_clean() {
 publish() {
     if (( $# < 2 )); then
         msg green "Usage: $0 publish [mira|nomira] [version] (extratag def: latest)"
-        msg yellow "Environment vars:\n\tMAIN_TAG - Override the primary tag (default: someguy123/HIVE:\$V)\n"
+        msg yellow "Environment vars:\n\tMAIN_TAG - Override the primary tag (default: someguy123/hive:\$V)\n"
         return 1
     fi
     MKMIRA="$1"
