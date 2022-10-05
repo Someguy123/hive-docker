@@ -638,6 +638,13 @@ build() {
     fi
 }
 
+# Build with disabled docker caching
+# Use the same as ./run.sh build
+build_nocache() {
+    BUILD_ARGS+=("--no-cache")
+    build "$@"
+}
+
 # Build full memory node (for RPC nodes) as a docker image
 # Usage: ./run.sh build_full [version]
 # Version is prefixed with v, matching Hive releases
@@ -2706,7 +2713,10 @@ case $1 in
         msg bold yellow "You may want to use '$0 install' for a binary image instead, it's faster."
         build "${@:2}"
         ;;
-    build_full)
+    build_nocache|build-nocache)
+        build_nocache "${@:2}"
+        ;;
+    build_full|build-full)
         msg bold yellow "You may want to use '$0 install_full' for a binary image instead, it's faster."
         build_full "${@:2}"
         ;;
@@ -2716,7 +2726,7 @@ case $1 in
     health)
         health "${@:2}"
         ;;
-    install_docker)
+    install_docker|install-docker)
         install_docker
         ;;
     install)
@@ -2743,7 +2753,7 @@ case $1 in
     dump_snap|dumpsnap|dump_snapshot|dumpsnapshot|export_snap|export_snapshot|exportsnap|exportsnapshot|create_snap|createsnap|create_snapshot|createsnapshot)
         dump_snap "${@:2}"
         ;;
-    shm_size)
+    shm_size|shm-size)
         shm_size $2
         ;;
     stop)
