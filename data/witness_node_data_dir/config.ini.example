@@ -103,9 +103,9 @@ p2p-seed-node = seed.mintrawa.com:2001          # mintrawa
 #################################################################################
 
 # Plugin(s) to enable, may be specified multiple times
-plugin = witness condenser_api network_broadcast_api database_api block_api
+plugin = witness condenser_api network_broadcast_api database_api block_api wallet_bridge_api
 # account_by_key is enabled by default - required to use 'get_witness' and 'get_account' in cli_wallet
-plugin = account_by_key account_by_key_api
+plugin = account_by_key account_by_key_api 
 # required for creating and importing Hive 1.24+ State Snapshots
 plugin = state_snapshot
 
