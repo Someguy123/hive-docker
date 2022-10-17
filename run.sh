@@ -2353,8 +2353,8 @@ ver() {
 
     msg green "Build information for currently installed ${NETWORK_NAME} image '${DOCKER_IMAGE}':"
 
-    # docker run --rm -it "${DOCKER_IMAGE}" cat /HIVE_build.txt
-    _docker_int_autorm cat /HIVE_build.txt
+    # docker run --rm -it "${DOCKER_IMAGE}" cat /hive_build.txt
+    _docker_int_autorm cat /hive_build.txt
     echo "${BLUE}${NETWORK_NAME} version currently running:${RESET}"
     # Verify that the container exists, even if it's stopped
     if seed_exists; then
