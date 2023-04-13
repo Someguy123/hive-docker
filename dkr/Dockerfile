@@ -1,5 +1,5 @@
 
-FROM phusion/baseimage:focal-1.2.0
+FROM phusion/baseimage:jammy-1.0.1
 
 RUN apt-get update && \
     apt-get install -y \
