@@ -191,6 +191,19 @@ required-participation = 33
 # Skip enforcing bandwidth restrictions. Default is true in favor of rc_plugin.
 witness-skip-enforce-bandwidth = 1
 
+
+#################################################################################
+#                                                                               #
+#                        COMPRESSION CONFIGURATION                              #
+#                                                                               #
+#################################################################################
+
+# Compress blocks using zstd as they're added to the block log
+enable-block-log-compression = 1
+
+# Block log zstd compression level 0 (fast, low compression) - 22 (slow, high compression)
+block-log-compression-level = 15
+
 #################################################################################
 #                                                                               #
 #                           NEW HF25 CONFIGURATION                              #
