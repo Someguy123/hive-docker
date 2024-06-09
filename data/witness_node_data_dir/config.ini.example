@@ -86,6 +86,7 @@ p2p-seed-node = api.deathwing.me:2001           # deathwing
 p2p-seed-node = seed.liondani.com:2016          # liondani
 p2p-seed-node = hiveseed-se.privex.io:2001      # privex
 p2p-seed-node = seed.mintrawa.com:2001          # mintrawa
+p2p-seed-node = hiveseed.rishipanthee.com:2001  # rishi556
 
 
 ###########################################################  END SEEDS ################################################################
