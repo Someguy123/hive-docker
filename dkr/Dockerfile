@@ -18,6 +18,7 @@ RUN apt-get update && \
     doxygen \
     libncurses5-dev \
     ninja-build \
+    liburing-dev \
     libreadline-dev \
     libboost-all-dev \
     perl \
