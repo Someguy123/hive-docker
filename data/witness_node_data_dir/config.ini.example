@@ -19,6 +19,37 @@ shared-file-full-threshold = 9500
 # Setting this to 0 disables autoscaling. The recommended value is between 1000 and 2000 (10-20%).
 shared-file-scale-rate = 1000
 
+# splits the block_log file into multiple parts, each part stores 1mil blocks
+# allows you to store the block_log across multiple filesystems by moving some of the part
+# files to another filesystem and then symlinking them
+# if lowered, will operate in pruned mode, only keeping the last N 1M block parts
+# if set to 0, will not keep any blocks at all (probably not a good idea to set to 0 tho)
+# if set to -1 (monolithic block log), the block_log will be a singular big file
+#
+# !!! WARNING FOR UPGRADING FROM v1.27.X !!!:
+# I've set this to -1 for now, which is intended to protect existing 1.27.x users,
+# as once this is changed from -1 to 9999, it will split the existing block_log
+# into parts, which can consume up to double the disk space, which you might not
+# have available
+#
+# If you have enough disk space available, you may change this to 9999 and replay.
+#
+# If you don't have enough disk space, you should stop the node with `./run.sh stop`
+# then delete the block_log and shared_memory files using `./run.sh clean`
+# and sync up from scratch using ./run.sh start
+#
+# default: 9999
+block-log-split = -1
+
+# Where to store the comments-rocksdb data
+comments-rocksdb-path = /shm/comments-rocksdb-storage
+
+# Stop processing blocks after this block number
+# stop-at-block = 
+
+# Exit the node after this block number
+# exit-at-block = 
+
 # Target blocks to flush
 flush = 1000
 # flush shared memory changes to disk every N blocks

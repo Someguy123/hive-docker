@@ -5,25 +5,53 @@ RUN apt-get update && \
     apt-get install -y \
     autoconf \
     automake \
+    autotools-dev \
+    bsdmainutils \
+    build-essential \
+    ca-certificates \
+    clang \
+    clang-tidy \
     cmake \
+    curl \
+    doxygen \
     g++ \
+    gdb \
     git \
-    zlib1g-dev \
+    gir1.2-glib-2.0 \
+    jq \
+    libboost-all-dev \
     libbz2-dev \
+    liblz4-dev \
+    liblz4-tool \
+    libncurses5-dev \
+    libreadline-dev \
     libsnappy-dev \
     libssl-dev \
     libtool \
-    make \
-    pkg-config \
-    doxygen \
-    libncurses5-dev \
-    ninja-build \
     liburing-dev \
-    libreadline-dev \
-    libboost-all-dev \
+    libxml2 \
+    libyajl-dev \
+    libzstd-dev \
+    make \
+    nano \
+    ncurses-dev \
+    net-tools \
+    ninja-build \
     perl \
+    pkg-config \
     python3 \
-    python3-jinja2 && \
+    python3-dev \
+    python3-jinja2 \
+    python3-pip \
+    python3-pkg-resources \
+    shared-mime-info \
+    tzdata \
+    virtualenv \
+    wget \
+    xdg-user-dirs \
+    xxd \
+    zlib1g-dev \
+    zopfli && \
     apt-get clean -qy
 
 ARG hived_version=master
