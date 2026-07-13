@@ -1651,11 +1651,31 @@ install_docker() {
     # curl/git used by docker, xz/lz4 used by dlblocks, jq used by tslogs/pclogs
     sudo apt install curl git xz-utils liblz4-tool jq
     curl https://get.docker.com | sh
-    if [ "$EUID" -ne 0 ]; then 
+    enable_docker_ipv6
+    if [ "$EUID" -ne 0 ]; then
         echo "Adding user $(whoami) to docker group"
         sudo usermod -aG docker "$(whoami)"
         echo "IMPORTANT: Please re-login (or close and re-connect SSH) for docker to function correctly"
     fi
+}
+
+# Usage: enable_docker_ipv6
+# Sets '"ipv6": true' in /etc/docker/daemon.json (preserving any existing settings)
+# and restarts docker so the change takes effect.
+enable_docker_ipv6() {
+    local dk_conf="/etc/docker/daemon.json" new_conf
+    echo "Enabling IPv6 in ${dk_conf}"
+    sudo mkdir -p "$(dirname "$dk_conf")"
+    if sudo test -s "$dk_conf"; then
+        new_conf=$(sudo cat "$dk_conf" | jq '. + {"ipv6": true}') || {
+            msg bold red "ERROR: Could not parse ${dk_conf} - please add '\"ipv6\": true' to it manually."
+            return 1
+        }
+    else
+        new_conf=$(jq -n '{"ipv6": true}')
+    fi
+    echo "$new_conf" | sudo tee "$dk_conf" > /dev/null
+    sudo systemctl restart docker
 }
 
 # Usage: ./run.sh install [tag]
