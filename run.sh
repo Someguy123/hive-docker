@@ -397,7 +397,7 @@ for i in $PORTS; do
         if grep -q ":" <<< "$i"; then
             DPORTS+=("-p$i")
         else
-            DPORTS+=("-p0.0.0.0:$i:$i")
+            DPORTS+=("-p$i:$i")
         fi
     fi
 done
@@ -1786,7 +1786,7 @@ remove_seed_exists() {
 # function to the HIVEd command line arguments.
 #
 # When ran without arguments, should produce a command which looks like:
-#   docker run -p 0.0.0.0:2001:2001 -v /hive/data:/HIVE -d --name $DOCKER_NAME
+#   docker run -p 2001:2001 -v /hive/data:/HIVE -d --name $DOCKER_NAME
 #       -t $DOCKER_IMAGE HIVEd --data-dir=/HIVE/witness_node_data_dir
 docker_run_node() {
     : "${DKR_RUN_ADD_DATA_DIR=1}"
