@@ -75,7 +75,11 @@ RUN cd ~ && \
         cd ~/hive && \
 	cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} . \
             -DBUILD_HIVE_TESTNET=${BUILD_HIVE_TESTNET} -G Ninja && \
-	ninja && ninja install && rm -rf ~/hive
+	ninja && \
+        echo " >> TEMPORARY WORKAROUND DUE TO MISSING size_checker DURING ninja install FOR v1.27.7 - INSTALLING hived/cli_wallet/utils MANUALLY" && \
+	cp -v programs/hived/hived programs/cli_wallet/cli_wallet programs/utils/* /usr/bin/ && \
+	rm -rf ~/hive
+	# ninja && ninja install && rm -rf ~/hive
 
 VOLUME /hive
 WORKDIR /hive
