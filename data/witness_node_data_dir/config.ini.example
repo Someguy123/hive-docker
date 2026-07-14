@@ -62,14 +62,14 @@ flush = 1000
 #################################################################################
 
 # Endpoint for P2P node to listen on
-p2p-endpoint = 0.0.0.0:2001
+p2p-endpoint = [::]:2001
 
 # Maxmimum number of incoming connections on P2P endpoint
 p2p-max-connections = 200
 
 # Endpoint for websocket RPC to listen on
-webserver-http-endpoint = 0.0.0.0:8091
-webserver-ws-endpoint = 0.0.0.0:8090
+webserver-http-endpoint = [::]:8091
+webserver-ws-endpoint = [::]:8090
 # Local unix http endpoint for webserver requests.
 # webserver-unix-endpoint = 
 # Enable the RFC-7692 permessage-deflate extension for the WebSocket server (only used if the client requests it).  This may save bandwidth at the expense of CPU
@@ -101,23 +101,14 @@ webserver-thread-pool-size = 4
 ################################################################ SEEDS ################################################################
 
 # P2P nodes to connect to on startup (may specify multiple times)
-p2p-seed-node = api.hive.blog:2001              # blocktrades
-p2p-seed-node = seed.openhive.network:2001      # gtg
-p2p-seed-node = seed.ecency.com:2001            # good-karma
-p2p-seed-node = rpc.ausbit.dev:2001             # ausbitbank
-p2p-seed-node = hive-seed.roelandp.nl:2001      # roelandp
+p2p-seed-node = hive-seed.actifit.io:2001       # actifit
 p2p-seed-node = hive-seed.arcange.eu:2001       # arcange
-p2p-seed-node = anyx.io:2001                    # anyx
-p2p-seed-node = hived.splinterlands.com:2001    # aggroed
-p2p-seed-node = seed.hive.blue:2001             # guiltyparties
-p2p-seed-node = hive-api.3speak.tv:2001         # threespeak
+p2p-seed-node = seed.hive.blog:2001             # blocktrades
+p2p-seed-node = seed.deathwing.me:2001          # deathwing
+p2p-seed-node = seed.openhive.network:2001      # gtg
 p2p-seed-node = node.mahdiyari.info:2001        # mahdiyari
-p2p-seed-node = hive-seed.lukestokes.info:2001  # lukestokes.mhth
-p2p-seed-node = api.deathwing.me:2001           # deathwing
-p2p-seed-node = seed.liondani.com:2016          # liondani
-p2p-seed-node = hiveseed-se.privex.io:2001      # privex
-p2p-seed-node = seed.mintrawa.com:2001          # mintrawa
 p2p-seed-node = hiveseed.rishipanthee.com:2001  # rishi556
+p2p-seed-node = hive-seed.roelandp.nl:2001      # roelandp
 
 
 ###########################################################  END SEEDS ################################################################
