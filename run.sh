@@ -2430,124 +2430,48 @@ status() {
 
 }
 
-rpc-global-props() {
-    if (( $# < 1 )); then
-        local ct_ip=$(get_container_ip "$DOCKER_NAME")
-        local rpc_url="http://${ct_ip}:${HIVE_RPC_PORT}"
-    else
-        local rpc_url="$1"
-    fi
-    # local rpc_url="https://api.deathwing.me/"
-
-    curl -fsSL --data '{"jsonrpc": "2.0", "method": "condenser_api.get_dynamic_global_properties", "params": [], "id": 1}' "$rpc_url"
-}
-
-_LN="======================================================================\n"
-
-: ${MONITOR_INTERVAL=10}
-
-MONITOR_INTERVAL=$((MONITOR_INTERVAL))
-
 HIAB-monitor() {
-    local props head_block block_time seconds_behind time_behind
-    local blocks_synced=0 started_at="$(rfc_datetime)" starting_block=0
-    local time_since_start mins_since_start bps=0 bpm=0
-    local remote_props remote_head_block blocks_behind mins_remaining
     error_control 0
-    msg
-    msg nots bold green "--- Hive-in-a-box Sync Monitor --- \n"
-    msg nots bold green "Monitoring your local HIVEd instance\n"
-    msg nots bold green "Block data will update every 10 seconds, showing the block number that your node is synced up to"
-    msg nots bold green "the date/time that block was produced, and how far behind in days/hours/minutes that block is.\n"
-    msg nots bold green "After the first check, we'll also output how many blocks have been synced so far, as well as"
-    msg nots bold green "the estimated blocks per second (BPS) that your node is syncing by.\n"
-    msg nots bold yellow "NOTE: This will not work with a replaying node. Only with a node which is synchronising.\n"
-    
-    msg nots "$_LN"
+    local REFRESH_INTERVAL="${REFRESH_INTERVAL:-30}"
+    local last_refresh=0
+    local HEAD_BLOCK=0
+    local now current_block us_per_block blocks_per_sec remaining eta_sec days hours mins secs
 
+    if ! command -v jq &>/dev/null || ! command -v curl &>/dev/null; then
+        msg bold red "'monitor' requires jq and curl to be installed."
+        return 1
+    fi
 
-    while true; do
-        error_control 1
-        props=$(rpc-global-props)
-        ret=$?
-        if (( ret != 0 )); then
-            msg bold red "Error while obtaining Local RPC global props. Will try again soon..."
-            msg nots "$_LN"
-            sleep "$MONITOR_INTERVAL"
-            continue
-        fi
-        head_block=$(echo "$props" | jq -r '.result.head_block_number')
-        block_time=$(echo "$props" | jq -r '.result.time')
-        if [ -z "$head_block" ] || [ -z "$block_time" ] || [[ "$head_block" == "null" ]] || [[ "$block_time" == "null" ]]; then
-            msg bold red "Local RPC head block / block time was empty. Will try again soon..."
-            msg nots "$_LN"
-            sleep "$MONITOR_INTERVAL"
-            continue
-        fi
+    msg nots bold green "--- Hive-in-a-box Sync Monitor ---\n"
+    msg nots bold green "Follows docker logs for µs/block lines; head block from https://api.hive.blog every REFRESH_INTERVAL (default 30s).\n"
+    msg blue "DOCKER LOGS: (press ctrl-c to exit) " 1>&2
 
-        current_timestamp=$(rfc_datetime)
-        error_control 2
-        seconds_behind=$(compare_dates "$current_timestamp" "$block_time")
-        if (( ret != 0 )); then
-            msg bold red "Local RPC timestamp was invalid (err: compare_dates). Will try again soon..."
-            msg nots "$_LN"; sleep "$MONITOR_INTERVAL"; continue
-        fi
-        time_behind="$(human_seconds "${seconds_behind}")"
-        if (( ret != 0 )); then
-            msg bold red "Local RPC timestamp was invalid (err: human_seconds). Will try again soon..."
-            msg nots "$_LN"; sleep "$MONITOR_INTERVAL"; continue
-        fi
-        error_control 0
+    docker logs -f --tail=30 "$DOCKER_NAME" \
+        | grep --line-buffered 'µs/block' \
+        | while IFS= read -r line; do
+            now=$(date +%s)
 
-        msg green "Current block:             ${head_block}"
-        msg green "Block time:                ${block_time}"
-        msg green "Time behind head block:    ${time_behind}"
-        msg
-
-        (( starting_block == 0 )) && starting_block="$head_block"
-
-        blocks_synced=$((head_block - starting_block))
-
-        if (( blocks_synced > 0 )); then
-            msg green "New blocks since start:      $blocks_synced"
-            time_since_start=$(compare_dates "$(rfc_datetime)" "$started_at")
-            bps=$((blocks_synced/time_since_start))
-            mins_since_start=$((time_since_start / 60))
-            msg green "Blocks per second:           $bps"
-
-            error_control 1
-            remote_props=$(rpc-global-props "$REMOTE_RPC")
-            ret=$?
-            if (( ret == 0 )); then
-                remote_head_block=$(echo "$remote_props" | jq -r '.result.head_block_number')
-                if [ -z "$remote_head_block" ] || [[ "$remote_head_block" == "null" ]]; then
-                    msg bold red "Remote RPC head block / block time was empty. Will try again soon..."
-                    msg nots "$_LN"
-                    sleep "$MONITOR_INTERVAL"
-                    continue
-                fi
-                msg green "Latest network block:        $remote_head_block (from RPC $REMOTE_RPC)"
-
-                blocks_behind=$(( remote_head_block - head_block ))
-                mins_remaining=$(( (blocks_behind / bps) / 60 ))
-                msg green "Blocks behind:               $blocks_behind"
-                msg green "ETA til Synced:              $mins_remaining minutes"
-                if (( mins_since_start > 0 )); then
-                    bpm=$(( blocks_synced / (time_since_start / 60) ))
-                    msg green "Blocks per minute:           $bpm"
-                fi
-            else
-                msg bold red "Error while obtaining Remote RPC global props. Will try again soon..."
-                msg nots "$_LN"
-                sleep "$MONITOR_INTERVAL"
-                continue
+            if (( now - last_refresh >= REFRESH_INTERVAL )); then
+                HEAD_BLOCK=$(curl -s --data '{"jsonrpc":"2.0","method":"condenser_api.get_dynamic_global_properties","params":[],"id":1}' \
+                    https://api.hive.blog | jq .result.head_block_number)
+                last_refresh=$now
             fi
-            
-            msg
-        fi
-        msg nots "$_LN"
-        sleep "$MONITOR_INTERVAL"
-    done
+
+            current_block=$(echo "$line" | grep -oP '(?<=#)\d+')
+            us_per_block=$(echo "$line" | grep -oP '[\d.]+(?=µs/block)')
+
+            blocks_per_sec=$(awk "BEGIN {printf \"%.2f\", 1000000 / $us_per_block}")
+            remaining=$((HEAD_BLOCK - current_block))
+            eta_sec=$(awk "BEGIN {printf \"%d\", $remaining / $blocks_per_sec}")
+
+            days=$((eta_sec / 86400))
+            hours=$(( (eta_sec % 86400) / 3600 ))
+            mins=$(( (eta_sec % 3600) / 60 ))
+            secs=$(( eta_sec % 60 ))
+
+            printf "Block: %d / %d | Speed: %.2f block/s | ETA: %dd %02dh %02dm %02ds\n" \
+                "$current_block" "$HEAD_BLOCK" "$blocks_per_sec" "$days" "$hours" "$mins" "$secs"
+        done
 }
 
 # Usage: ./run.sh clean [blocks|shm|all]
