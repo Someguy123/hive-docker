@@ -212,6 +212,7 @@ if [[ "$NETWORK" == "hive" ]]; then
     : ${REMOTE_RPC="https://api.deathwing.me"}
 
     : ${STOP_TIME=600}          # Amount of time in seconds to allow the docker container to stop before killing it.
+    : ${DKR_RESTART_POLICY="unless-stopped"}  # Docker restart policy for the node container (no, on-failure, always, unless-stopped). Empty = none.
     : ${HIVE_RPC_PORT="8091"}  # Local HIVEd RPC port, used by commands such as 'monitor' which need to query your HIVEd's HTTP RPC
 
     : ${DKR_DATA_MOUNT="/hive"}    # Mount $DATADIR onto this folder within the container
@@ -272,6 +273,9 @@ fi
 # Amount of time in seconds to allow the docker container to stop before killing it.
 # Default: 600 seconds (10 minutes)
 : ${STOP_TIME=600}
+# Docker restart policy for the node container, so it comes back after a docker daemon restart/upgrade or reboot.
+# Options: no, on-failure, always, unless-stopped. Set to empty to disable.
+: ${DKR_RESTART_POLICY="unless-stopped"}
 
 # Git repository to use when building hive - containing hived code
 : ${HIVE_SOURCE="https://github.com/openhive-network/hive.git"}
@@ -1815,6 +1819,16 @@ docker_run_node() {
     (( DKR_RUN_ADD_DATA_DIR )) && stm_run_args+=("--data-dir=${DKR_DATA_MOUNT}/witness_node_data_dir")
 
     stm_run_args+=("${HIVE_RUN_ARGS[@]}" "$@")
+
+    # Restart the node automatically if the docker daemon restarts (e.g. after a docker upgrade),
+    # the host reboots, or hived crashes. 'unless-stopped' means a manual `./run.sh stop` stays stopped.
+    # Also give hived STOP_TIME seconds to shut down cleanly when the daemon stops it (docker's default is 10s),
+    # to avoid corrupting shared_memory and forcing a replay.
+    local dkr_node_args=()
+    [[ -n "$DKR_RESTART_POLICY" ]] && dkr_node_args+=("--restart" "$DKR_RESTART_POLICY")
+    dkr_node_args+=("--stop-timeout" "$STOP_TIME")
+
+    local DKR_RUN_ARGS=("${dkr_node_args[@]}" "${DKR_RUN_ARGS[@]}")
     _docker_run "${DKR_RUN_BIN}" "${stm_run_args[@]}"
 }
 
